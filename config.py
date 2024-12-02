@@ -32,6 +32,8 @@ class Config:
         'Lovejoy Antiques',
         os.environ.get('MAIL_USERNAME', '1249192949@qq.com')
     )
+    MAIL_USE_SSL = False
+    MAIL_DEBUG = True
     
     # File upload configuration
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # Limit single file size to 5MB
