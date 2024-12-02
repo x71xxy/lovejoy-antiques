@@ -102,3 +102,10 @@ If you did not request a password reset, simply ignore this email.
 def verify_reset_token(token):
     """Verify reset token"""
     return User.verify_reset_password_token(token)
+
+def generate_reset_token(email):
+    """Generate password reset token (compatibility function)"""
+    user = User.query.filter_by(email=email).first()
+    if user:
+        return user.get_reset_password_token()
+    return None

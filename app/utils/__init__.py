@@ -1,10 +1,9 @@
 # 导出所有需要的函数
 from .email import (
     send_verification_email,
-    generate_token,
     send_reset_email,
     verify_reset_token,
-    generate_reset_token
+    generate_token
 )
 from .security import (
     validate_password,
@@ -18,7 +17,6 @@ __all__ = [
     'generate_token',
     'send_reset_email',
     'verify_reset_token',
-    'generate_reset_token',
     'validate_password',
     'verify_token',
     'sanitize_filename'
