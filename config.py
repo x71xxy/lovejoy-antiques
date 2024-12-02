@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()  # 加载 .env 文件中的环境变量
 
 class Config:
+     # Basic configuration
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-please-change-in-production'
     # 数据库配置
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
