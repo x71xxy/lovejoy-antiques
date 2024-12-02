@@ -10,7 +10,8 @@ from app.models.user import User
 def send_async_email(app, msg):
     with app.app_context():
         try:
-            mail.send(msg)
+            with mail.connect() as conn:
+                conn.send(msg)
         except Exception as e:
             current_app.logger.error(f"Failed to send email: {str(e)}")
             raise e
@@ -24,13 +25,11 @@ def send_email(subject, recipients, text_body, html_body):
             body=text_body,
             html=html_body
         )
-        Thread(
-            target=send_async_email,
-            args=(current_app._get_current_object(), msg)
-        ).start()
+        with mail.connect() as conn:
+            conn.send(msg)
         return True
     except Exception as e:
-        current_app.logger.error(f"Error preparing email: {str(e)}")
+        current_app.logger.error(f"Error sending email: {str(e)}")
         return False
 
 def send_verification_email(temp_user):
