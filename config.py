@@ -4,17 +4,14 @@ from dotenv import load_dotenv
 load_dotenv()  # 加载 .env 文件中的环境变量
 
 class Config:
-    # Basic configuration
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-please-change-in-production'
+    # 数据库配置
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
+        SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
     
-    # Database configuration
-    if os.environ.get('FLASK_ENV') == 'production':
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-        if SQLALCHEMY_DATABASE_URI and SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
-            SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://')
-    else:
-        SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///lovejoy.db'
+    # 禁用 SQLAlchemy 事件系统
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+   
     
     # Password policy configuration
     PASSWORD_MIN_LENGTH = 8

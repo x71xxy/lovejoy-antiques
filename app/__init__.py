@@ -16,13 +16,8 @@ mail = Mail()
 csrf = CSRFProtect()
 
 def create_app(config_name=None):
-    app = Flask(__name__, static_folder='static')
-    
-    if config_name == 'testing':
-        app.config['TESTING'] = True
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    else:
-        app.config.from_object(Config)
+    app = Flask(__name__)
+    app.config.from_object(Config)
     
     # 初始化扩展
     db.init_app(app)

@@ -9,15 +9,13 @@ services:
       pip install -r requirements.txt
     startCommand: |
       source .venv/bin/activate
+      flask db upgrade
       gunicorn wsgi:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
-      - key: FLASK_ENV
-        value: production
-        fromDatabase:
-          name: lovejoy_kdwp
-          property: connectionString
+      - key: DATABASE_URL
+        value: postgresql://lovejoy_kdwp_user:3Zg7hPC8KXcfIvc1QhJcVLJaAqBfXvtS@dpg-ct70ccrv2p9s739mum6g-a.oregon-postgres.render.com:5432/lovejoy_kdwp
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY
