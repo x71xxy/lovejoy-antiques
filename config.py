@@ -26,9 +26,12 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.qq.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '1249192949@qq.com')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = ('Lovejoy Antiques', os.environ.get('MAIL_USERNAME'))
+    MAIL_DEFAULT_SENDER = (
+        'Lovejoy Antiques',
+        os.environ.get('MAIL_USERNAME', '1249192949@qq.com')
+    )
     
     # File upload configuration
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # Limit single file size to 5MB

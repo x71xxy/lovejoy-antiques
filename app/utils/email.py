@@ -13,15 +13,16 @@ def send_async_email(app, msg):
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Failed to send email: {str(e)}")
+            raise e
 
 def send_email(subject, recipients, text_body, html_body):
     try:
         msg = Message(
             subject=subject,
+            sender=current_app.config['MAIL_DEFAULT_SENDER'],
             recipients=recipients,
             body=text_body,
-            html=html_body,
-            sender=current_app.config['MAIL_DEFAULT_SENDER']
+            html=html_body
         )
         Thread(
             target=send_async_email,
@@ -41,12 +42,10 @@ def send_verification_email(temp_user):
             _external=True
         )
         
-        msg = Message(
+        return send_email(
             subject='Verify Your Lovejoy Antiques Account',
-            recipients=[temp_user.email]
-        )
-        
-        msg.body = f'''Dear {temp_user.username},
+            recipients=[temp_user.email],
+            text_body=f'''Dear {temp_user.username},
 
 Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:
 {verification_url}
@@ -55,10 +54,16 @@ This link will expire in 1 hour.
 If you did not request this, please ignore this email.
 
 Best regards,
-Lovejoy Antiques Team'''
-
-        mail.send(msg)
-        return True
+Lovejoy Antiques Team''',
+            html_body=f'''
+<p>Dear {temp_user.username},</p>
+<p>Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:</p>
+<p><a href="{verification_url}">Verify Email</a></p>
+<p>This link will expire in 1 hour.</p>
+<p>If you did not request this, please ignore this email.</p>
+<p>Best regards,<br>Lovejoy Antiques Team</p>
+'''
+        )
     except Exception as e:
         current_app.logger.error(f"Failed to send verification email: {str(e)}")
         return False
