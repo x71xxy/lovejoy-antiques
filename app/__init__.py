@@ -33,6 +33,14 @@ def create_app(config_name=None):
     # 确保导入所有路由
     from app.routes import admin, auth, evaluation, views
     
+    from app import commands
+    commands.init_app(app)
+    
+    with app.app_context():
+        db.create_all()
+        from app.utils.init_admin import init_admin
+        init_admin()
+    
     return app
 
 # 导出扩展实例

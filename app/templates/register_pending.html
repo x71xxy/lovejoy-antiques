@@ -1,26 +1,28 @@
-{% extends "base.html" %} {% block title %}注册确认{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Registration Confirmation{% endblock
+%} {% block content %}
 <div class="auth-container">
   <div class="auth-box">
     <div class="auth-header">
-      <h1>注册确认</h1>
-      <p class="subtitle">请查收验证邮件</p>
+      <h1>Registration Confirmation</h1>
+      <p class="subtitle">Please Check Your Email</p>
     </div>
 
     <div class="message-box">
       <div class="icon">📧</div>
       <p class="message">
-        我们已经向您的邮箱发送了一封验证邮件。<br />
-        请点击邮件中的链接完成注册。
+        We have sent a verification email to your inbox.<br />
+        Please click the link in the email to complete registration.
       </p>
       <p class="note">
-        如果您没有收到邮件，请检查垃圾邮件文件夹，<br />
-        或者 <a href="{{ url_for('main.register') }}">重新注册</a>
+        If you haven't received the email, please check your spam folder,<br />
+        or <a href="{{ url_for('main.register') }}">register again</a>
       </p>
     </div>
 
     <div class="auth-links">
-      <a href="{{ url_for('main.home') }}" class="btn btn-outline">返回首页</a>
+      <a href="{{ url_for('main.home') }}" class="btn btn-outline"
+        >Return to Home</a
+      >
     </div>
   </div>
 </div>
