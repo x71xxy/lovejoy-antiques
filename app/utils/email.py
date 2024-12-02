@@ -18,28 +18,18 @@ def send_email(subject, recipients, text_body, html_body):
     try:
         msg = Message(
             subject=subject,
-            sender=current_app.config['MAIL_DEFAULT_SENDER'],
             recipients=recipients,
             body=text_body,
-            html=html_body
+            html=html_body,
+            sender=current_app.config['MAIL_DEFAULT_SENDER']
         )
-        
-        # 打印调试信息
-        current_app.logger.info(f"Preparing to send email:")
-        current_app.logger.info(f"From: {msg.sender}")
-        current_app.logger.info(f"To: {msg.recipients}")
-        current_app.logger.info(f"Subject: {msg.subject}")
-        
-        # 同步发送邮件（为了调试）
-        mail.send(msg)
-        current_app.logger.info("Email sent successfully")
+        Thread(
+            target=send_async_email,
+            args=(current_app._get_current_object(), msg)
+        ).start()
         return True
-        
     except Exception as e:
-        current_app.logger.error(f"Error sending email: {str(e)}")
-        current_app.logger.error(f"Mail server: {current_app.config['MAIL_SERVER']}")
-        current_app.logger.error(f"Mail port: {current_app.config['MAIL_PORT']}")
-        current_app.logger.error(f"Mail username: {current_app.config['MAIL_USERNAME']}")
+        current_app.logger.error(f"Error preparing email: {str(e)}")
         return False
 
 def send_verification_email(temp_user):
@@ -51,28 +41,23 @@ def send_verification_email(temp_user):
             _external=True
         )
         
-        send_email(
-            subject='验证您的 Lovejoy Antiques 账号',
-            recipients=[temp_user.email],
-            text_body=f'''亲爱的 {temp_user.username}：
+        msg = Message(
+            subject='Verify Your Lovejoy Antiques Account',
+            recipients=[temp_user.email]
+        )
+        
+        msg.body = f'''Dear {temp_user.username},
 
-感谢您注册 Lovejoy Antiques！请点击以下链接验证您的邮箱：
+Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:
 {verification_url}
 
-此链接将在1小时后过期。
-如果您没有请求此验证，请忽略此邮件。
+This link will expire in 1 hour.
+If you did not request this, please ignore this email.
 
-祝好，
-Lovejoy Antiques 团队''',
-            html_body=f'''
-<p>亲爱的 {temp_user.username}：</p>
-<p>感谢您注册 Lovejoy Antiques！请点击以下链接验证您的邮箱：</p>
-<p><a href="{verification_url}">验证邮箱</a></p>
-<p>此链接将在1小时后过期。</p>
-<p>如果您没有请求此验证，请忽略此邮件。</p>
-<p>祝好，<br>Lovejoy Antiques 团队</p>
-'''
-        )
+Best regards,
+Lovejoy Antiques Team'''
+
+        mail.send(msg)
         return True
     except Exception as e:
         current_app.logger.error(f"Failed to send verification email: {str(e)}")
@@ -94,25 +79,19 @@ def send_reset_email(user):
     try:
         token = user.get_reset_password_token()
         send_email(
-            subject='重置您的 Lovejoy Antiques 密码',
+            subject='Reset Your Password',
             recipients=[user.email],
-            text_body=f'''亲爱的用户：
-
-您请求重置密码。请点击以下链接重置密码：
+            text_body=f'''To reset your password, visit the following link:
 {url_for('main.reset_password', token=token, _external=True)}
 
-如果您没有请求重置密码，请忽略此邮件。
-
-祝好，
-Lovejoy Antiques 团队''',
+If you did not request a password reset, simply ignore this email.
+''',
             html_body=f'''
-<p>亲爱的用户：</p>
-<p>您请求重置密码。请点击以下链接重置密码：</p>
+<p>To reset your password, click the following link:</p>
 <p><a href="{url_for('main.reset_password', token=token, _external=True)}">
-    重置密码
+    Reset Password
 </a></p>
-<p>如果您没有请求重置密码，请忽略此邮件。</p>
-<p>祝好，<br>Lovejoy Antiques 团队</p>
+<p>If you did not request a password reset, simply ignore this email.</p>
 '''
         )
         return True
