@@ -1,0 +1,205 @@
+{% extends "base.html" %} {% block title %}Request Evaluation{% endblock %} {%
+block content %}
+<div class="evaluation-container">
+  <div class="evaluation-box">
+    <div class="header">
+      <h1>Request Evaluation</h1>
+      <p class="subtitle">Please provide your antique information</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %} {% endif %} {% endwith %}
+
+    <form method="POST" class="evaluation-form" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.title.label }} {{ form.title(class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.category.label }} {{ form.category(class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        {{ form.description.label }} {{ form.description(class="form-control",
+        rows=5) }}
+      </div>
+
+      <div class="form-group">
+        {{ form.contact_preference.label }} {{
+        form.contact_preference(class="form-control") }}
+      </div>
+
+      <div class="form-group">
+        <label for="file-upload" class="custom-file-upload">
+          <i class="upload-icon">📁</i>
+          <span>Choose Files</span>
+        </label>
+        {{ form.images(id="file-upload", class="form-control hidden",
+        multiple=true, accept="image/*", onchange="validateImages(this)") }}
+        <small class="text-muted">
+          Maximum 5 images, each under 5MB. Supported formats: JPG, PNG, GIF
+        </small>
+        <div class="error-message" id="image-error"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        Submit Evaluation Request
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function validateImages(input) {
+    const maxImages = '{{ config["MAX_IMAGE_COUNT"] }}';
+    const maxSize = '{{ config["MAX_CONTENT_LENGTH"] }}';
+    const errorDiv = document.getElementById("image-error");
+
+    if (input.files.length > maxImages) {
+      errorDiv.textContent = `Maximum ${maxImages} images allowed`;
+      input.value = ""; // Clear selection
+      return false;
+    }
+
+    // Check each file size
+    for (let file of input.files) {
+      if (file.size > maxSize) {
+        errorDiv.textContent = "Each file must be under 5MB";
+        input.value = "";
+        return false;
+      }
+    }
+
+    errorDiv.textContent = ""; // Clear error message
+    return true;
+  }
+
+  // Validate again before form submission
+  document
+    .querySelector(".evaluation-form")
+    .addEventListener("submit", function (e) {
+      const input = document.querySelector('input[type="file"]');
+      if (!validateImages(input)) {
+        e.preventDefault();
+      }
+    });
+</script>
+
+<style>
+  .evaluation-container {
+    min-height: calc(100vh - 4rem);
+    padding: 2rem;
+    background: linear-gradient(135deg, #f6f8fb 0%, #f1f4f8 100%);
+  }
+
+  .evaluation-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .header h1 {
+    color: #2d3748;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #718096;
+    font-size: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.8rem;
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  .text-muted {
+    color: #718096;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  .alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+
+  .alert-error {
+    background: #fed7d7;
+    color: #c53030;
+  }
+
+  .alert-success {
+    background: #c6f6d5;
+    color: #2f855a;
+  }
+
+  .error-message {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  .custom-file-upload {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    background: #f3f4f6;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .custom-file-upload:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+  }
+
+  .upload-icon {
+    margin-right: 0.5rem;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+{% endblock %}

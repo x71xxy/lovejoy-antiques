@@ -1,0 +1,105 @@
+{% extends "base.html" %} {% block title %}Verify two-factor authentication{%
+endblock %} {% block content %}
+<div class="auth-container">
+  <div class="auth-box">
+    <h1>Verify two-factor authentication</h1>
+    <p class="description">
+      Open the Google Authenticator app and enter the code
+    </p>
+
+    <form method="POST" class="auth-form">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        <div class="input-wrapper">
+          <i class="icon">🔐</i>
+           {{ form.token(class="form-control", placeholder="Enter a 6-digit CAPTCHA") }}
+        </div>
+        {% if form.token.errors %} {% for error in form.token.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+      </div>
+
+      <button type="submit" class="submit-btn">verification</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f6f8fb 0%, #f1f4f8 100%);
+  }
+
+  .auth-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 420px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .description {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon {
+    position: absolute;
+    left: 12px;
+    color: #666;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .submit-btn:hover {
+    background-color: #357abd;
+  }
+
+  .error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+</style>
+{% endblock %}

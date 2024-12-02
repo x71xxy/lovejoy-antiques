@@ -1,0 +1,199 @@
+{% extends "base.html" %} {% block title %}Evaluation Details{% endblock %} {%
+block content %}
+<div class="evaluation-detail-container">
+  <div class="evaluation-detail-box">
+    <div class="evaluation-header">
+      <h1>Evaluation Details</h1>
+      <div class="status-badge {{ evaluation.status }}">
+        {{ evaluation.get_status_display() }}
+      </div>
+    </div>
+
+    <div class="evaluation-info">
+      <div class="info-group">
+        <label>Item Name</label>
+        <p>{{ evaluation.title }}</p>
+      </div>
+
+      <div class="info-group">
+        <label>Category</label>
+        <p>{{ evaluation.get_category_display() }}</p>
+      </div>
+
+      <div class="info-group">
+        <label>Submission Time</label>
+        <p>{{ evaluation.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+      </div>
+
+      <div class="info-group">
+        <label>Description</label>
+        <p class="description">{{ evaluation.description }}</p>
+      </div>
+
+      {% if evaluation.images %}
+      <div class="images-group">
+        <label>Uploaded Images</label>
+        <div class="image-gallery">
+          {% for image_path in evaluation.images %}
+          <div class="image-item">
+            <img
+              src="{{ url_for('static', filename='uploads/' + image_path) }}"
+              alt="Evaluation Image"
+            />
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if evaluation.status == 'pending' %}
+    <div class="evaluation-actions">
+      <button
+        onclick="cancelEvaluation('{{ evaluation.id }}')"
+        class="btn btn-danger"
+      >
+        Cancel Evaluation
+      </button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .evaluation-detail-container {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .evaluation-detail-box {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .evaluation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+
+  .status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-badge.in_progress {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-badge.completed {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge.cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .info-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .info-group label {
+    display: block;
+    color: #4b5563;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .description {
+    white-space: pre-line;
+  }
+
+  .image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .image-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .evaluation-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-danger {
+    background: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .btn-danger:hover {
+    background: #dc2626;
+  }
+</style>
+
+<script>
+  function cancelEvaluation(evaluationId) {
+    if (confirm("Are you sure you want to cancel this evaluation request?")) {
+      fetch(`/cancel_evaluation/${evaluationId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token() }}",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.message) {
+            const notification = document.createElement("div");
+            notification.className = "notification success";
+            notification.textContent = data.message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+              notification.remove();
+              window.location.href = "/my_evaluations";
+            }, 3000);
+          } else {
+            throw new Error(data.error || "Operation failed");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          const notification = document.createElement("div");
+          notification.className = "notification error";
+          notification.textContent = "Operation failed, please try again";
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.remove();
+          }, 3000);
+        });
+    }
+  }
+</script>
+{% endblock %}

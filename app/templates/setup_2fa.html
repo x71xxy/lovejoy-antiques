@@ -1,0 +1,131 @@
+{% extends "base.html" %} {% block title %}设置双因素认证{% endblock %} {% block
+content %}
+<div class="auth-container">
+  <div class="auth-box">
+    <h1>设置双因素认证</h1>
+    <p class="description">使用 Google Authenticator 扫描二维码</p>
+
+    <div class="qr-container">
+      <img src="{{ qr_code }}" alt="2FA QR Code" />
+      <p class="backup-code">备用密钥: {{ secret }}</p>
+    </div>
+
+    <form method="POST" class="auth-form">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        <div class="input-wrapper">
+          <i class="icon"></i>
+          {{ form.token(class="form-control", placeholder="输入6位验证码") }}
+        </div>
+        {% if form.token.errors %} {% for error in form.token.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+      </div>
+
+      <button type="submit" class="submit-btn">启用双因素认证</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f6f8fb 0%, #f1f4f8 100%);
+  }
+
+  .auth-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 420px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .description {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  .qr-container {
+    text-align: center;
+    margin: 2rem 0;
+  }
+
+  .qr-container img {
+    max-width: 200px;
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .backup-code {
+    font-family: monospace;
+    background: #f1f5f9;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #4a5568;
+    word-break: break-all;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon {
+    position: absolute;
+    left: 12px;
+    color: #666;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .submit-btn:hover {
+    background-color: #357abd;
+  }
+
+  .error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+</style>
+{% endblock %}

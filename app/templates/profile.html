@@ -1,0 +1,157 @@
+{% extends "base.html" %} {% block title %}Profile{% endblock %} {% block
+content %}
+<div class="profile-container">
+  <div class="profile-content">
+    <div class="profile-header">
+      <h1>Profile</h1>
+    </div>
+
+    <div class="profile-section">
+      <h2>Basic Information</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Username</label>
+          <p>{{ current_user.username }}</p>
+        </div>
+
+        <div class="info-item">
+          <label>Email</label>
+          <p>{{ current_user.email }}</p>
+        </div>
+
+        <div class="info-item">
+          <label>Phone Number</label>
+          <p>{{ current_user.phone or 'Not Set' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Security Settings</h2>
+      <div class="security-grid">
+        <div class="security-item">
+          <div class="security-info">
+            <h3>Two-Factor Authentication</h3>
+            <p>Use Google Authenticator for two-factor verification</p>
+          </div>
+          {% if not current_user.is_2fa_enabled %}
+          <a href="{{ url_for('main.setup_2fa') }}" class="btn btn-primary">
+            Enable
+          </a>
+          {% else %}
+          <span class="status-badge enabled">Enabled</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .profile-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+  }
+
+  .profile-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  .profile-header {
+    padding: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+  }
+
+  .profile-header h1 {
+    color: white;
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  .profile-section {
+    padding: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .profile-section:last-child {
+    border-bottom: none;
+  }
+
+  .profile-section h2 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .info-item label {
+    display: block;
+    color: #718096;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-item p {
+    color: #2d3748;
+    font-size: 1.1rem;
+  }
+
+  .security-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .security-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+  }
+
+  .security-info h3 {
+    color: #2d3748;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .security-info p {
+    color: #718096;
+  }
+
+  .btn-primary {
+    background: #4299e1;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background: #3182ce;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+  }
+
+  .status-badge.enabled {
+    background: #c6f6d5;
+    color: #2f855a;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %} {% block title %}注册确认{% endblock %} {% block
+content %}
+<div class="auth-container">
+  <div class="auth-box">
+    <div class="auth-header">
+      <h1>注册确认</h1>
+      <p class="subtitle">请查收验证邮件</p>
+    </div>
+
+    <div class="message-box">
+      <div class="icon">📧</div>
+      <p class="message">
+        我们已经向您的邮箱发送了一封验证邮件。<br />
+        请点击邮件中的链接完成注册。
+      </p>
+      <p class="note">
+        如果您没有收到邮件，请检查垃圾邮件文件夹，<br />
+        或者 <a href="{{ url_for('main.register') }}">重新注册</a>
+      </p>
+    </div>
+
+    <div class="auth-links">
+      <a href="{{ url_for('main.home') }}" class="btn btn-outline">返回首页</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f6f8fb 0%, #f1f4f8 100%);
+  }
+
+  .auth-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 420px;
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .auth-header h1 {
+    color: #2d3748;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #718096;
+    font-size: 1rem;
+  }
+
+  .message-box {
+    text-align: center;
+    padding: 2rem;
+    background: #f7fafc;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+
+  .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .message {
+    color: #4a5568;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .note {
+    color: #718096;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .note a {
+    color: #4299e1;
+    text-decoration: none;
+  }
+
+  .note a:hover {
+    text-decoration: underline;
+  }
+
+  .auth-links {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .btn {
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline {
+    border: 2px solid #4299e1;
+    color: #4299e1;
+    background: transparent;
+  }
+
+  .btn-outline:hover {
+    background: #4299e1;
+    color: white;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .auth-container {
+      padding: 1rem;
+    }
+
+    .auth-box {
+      padding: 1.5rem;
+    }
+
+    .auth-header h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,377 @@
+{% extends "base.html" %} {% block title %}Register{% endblock %} {% block
+content %}
+<div class="auth-container">
+  <div class="auth-box">
+    <div class="auth-header">
+      <h1>Create Account</h1>
+      <p class="subtitle">Join Lovejoy Antiques</p>
+    </div>
+
+    <form method="POST" class="auth-form" id="register-form">
+      {{ form.hidden_tag() }}
+
+      <div class="form-group">
+        {{ form.username.label }} {{ form.username(class="form-control") }} {%
+        if form.username.errors %} {% for error in form.username.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.email.label }} {{ form.email(class="form-control") }} {% if
+        form.email.errors %} {% for error in form.email.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+        <small class="form-text text-muted"
+          >Required for account verification</small
+        >
+      </div>
+
+      <div class="form-group">
+        {{ form.phone.label }} {{ form.phone(class="form-control") }} {% if
+        form.phone.errors %} {% for error in form.phone.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+      </div>
+
+      <div class="form-group">
+        {{ form.password.label }} {{ form.password(class="form-control",
+        oninput="checkPassword(this.value)") }} {% if form.password.errors %} {%
+        for error in form.password.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+        <div class="password-requirements">
+          <ul>
+            <li id="length" class="requirement">
+              <i class="check-icon"></i>At least 8 characters
+            </li>
+            <li id="uppercase" class="requirement">
+              <i class="check-icon"></i>At least 1 uppercase letter
+            </li>
+            <li id="lowercase" class="requirement">
+              <i class="check-icon"></i>At least 1 lowercase letter
+            </li>
+            <li id="number" class="requirement">
+              <i class="check-icon"></i>At least 1 number
+            </li>
+            <li id="special" class="requirement">
+              <i class="check-icon"></i>At least 1 special character
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="form-group">
+        {{ form.confirm_password.label }} {{
+        form.confirm_password(class="form-control") }} {% if
+        form.confirm_password.errors %} {% for error in
+        form.confirm_password.errors %}
+        <span class="error-message">{{ error }}</span>
+        {% endfor %} {% endif %}
+      </div>
+
+      <div class="form-group">{{ form.recaptcha }}</div>
+
+      {{ form.submit(class="btn btn-primary") }}
+
+      <div class="auth-links">
+        <a href="{{ url_for('main.login') }}" class="link"
+          >Already have an account? Login</a
+        >
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f6f8fb 0%, #f1f4f8 100%);
+  }
+
+  .auth-box {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 420px;
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .auth-header h1 {
+    color: #2d3748;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: #718096;
+    font-size: 1rem;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  label {
+    color: #4a5568;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #4299e1;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background-color: #4299e1;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #3182ce;
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+  }
+
+  .auth-links {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .link {
+    color: #4299e1;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .link:hover {
+    color: #2b6cb0;
+    text-decoration: underline;
+  }
+
+  /* 密码要求相关样式 */
+  .password-requirements {
+    margin-top: 0.5rem;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .password-requirements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .password-requirements li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #9ca3af;
+    margin: 0.5rem 0;
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+  }
+
+  .password-requirements li.valid {
+    color: #34d399;
+    transform: translateX(2px);
+  }
+
+  .check-icon {
+    width: 1rem;
+    height: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-style: normal;
+    transition: all 0.3s ease;
+  }
+
+  .password-requirements li.valid .check-icon::before {
+    content: "✓";
+    color: #34d399;
+    transform: scale(1.1);
+  }
+
+  .password-requirements li:not(.valid) .check-icon::before {
+    content: "×";
+    color: #9ca3af;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #fff5f5;
+    border-radius: 4px;
+    border: 1px solid #fed7d7;
+  }
+
+  button:disabled {
+    background-color: #a0aec0;
+    cursor: not-allowed;
+  }
+
+  button:disabled:hover {
+    transform: none;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .auth-container {
+      padding: 1rem;
+    }
+
+    .auth-box {
+      padding: 1.5rem;
+    }
+
+    .auth-header h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .error {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  .invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+  }
+
+  .form-control.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  }
+
+  .alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .alert-error {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+  }
+
+  .alert-success {
+    background-color: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #86efac;
+  }
+</style>
+
+<script>
+  function checkPassword(password) {
+    // Check length
+    const lengthRequirement = document.getElementById('length');
+    lengthRequirement.classList.toggle('valid', password.length >= 8);
+
+    // Check uppercase
+    const upperRequirement = document.getElementById('uppercase');
+    upperRequirement.classList.toggle('valid', /[A-Z]/.test(password));
+
+    // Check lowercase
+    const lowerRequirement = document.getElementById('lowercase');
+    lowerRequirement.classList.toggle('valid', /[a-z]/.test(password));
+
+    // Check number
+    const numberRequirement = document.getElementById('number');
+    numberRequirement.classList.toggle('valid', /[0-9]/.test(password));
+
+    // Check special character
+    const specialRequirement = document.getElementById('special');
+    specialRequirement.classList.toggle('valid', 
+      /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    );
+  }
+
+  document
+    .getElementById("register-form")
+    .addEventListener("submit", function (e) {
+      // Remove client-side duplicate validation as server will handle it
+      // const recaptchaResponse = grecaptcha.getResponse();
+      // if (!recaptchaResponse) {
+      //     e.preventDefault();
+      //     alert("Please complete the captcha");
+      //     return false;
+      // }
+    });
+</script>
+{% endblock %}

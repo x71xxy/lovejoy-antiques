@@ -1,0 +1,170 @@
+{% extends "admin/base.html" %} {% import "macros.html" as macros %} {% block
+admin_content %}
+<div class="evaluations-container">
+  <div class="header">
+    <h2>Evaluation Management</h2>
+    <select class="status-select" onchange="filterByStatus(this.value)">
+      <option value="">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="in_progress">In Progress</option>
+      <option value="completed">Completed</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+
+  <div class="table-container">
+    <table class="evaluation-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Item Category</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for evaluation in evaluations.items %}
+        <tr>
+          <td>{{ evaluation.id }}</td>
+          <td>{{ evaluation.user.username }}</td>
+          <td>{{ evaluation.get_category_display() }}</td>
+          <td>
+            <select
+              class="status-select compact"
+              onchange="updateStatus('{{ evaluation.id }}', this.value)"
+            >
+              {% for status, label in evaluation.STATUS_CHOICES.items() %}
+              <option value="{{ status }}" {% if status==evaluation.status %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>{{ evaluation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>
+            <a
+              href="{{ url_for('main.evaluation_detail', evaluation_id=evaluation.id) }}"
+              class="btn btn-primary btn-sm"
+            >
+              View Details
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ macros.render_pagination(evaluations) }}
+</div>
+
+<style>
+  .evaluations-container {
+    padding: 2rem;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .header h2 {
+    margin: 0;
+    color: #2d3748;
+  }
+
+  .table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .evaluation-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .evaluation-table th,
+  .evaluation-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .evaluation-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .evaluation-table tr:hover {
+    background: #f9fafb;
+  }
+
+  .status-select {
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    min-width: 120px;
+  }
+
+  .status-select.compact {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-primary {
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background: #3182ce;
+  }
+</style>
+
+<script>
+  function updateStatus(evaluationId, status) {
+    fetch(`/admin/evaluation/${evaluationId}/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify({ status: status })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Update failed');
+      return response.json();
+    })
+    .then(data => {
+      if (data.message) {
+        location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to update status, please try again');
+    });
+  }
+
+  function filterByStatus(status) {
+    window.location.href = `?status=${status}`;
+  }
+</script>
+{% endblock %}

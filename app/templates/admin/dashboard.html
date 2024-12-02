@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %} {% block admin_content %}
+<div class="dashboard-container">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Total Users</h3>
+      <p class="stat-number">{{ stats.total_users }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Total Evaluations</h3>
+      <p class="stat-number">{{ stats.total_evaluations }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Pending Evaluations</h3>
+      <p class="stat-number">{{ stats.pending_evaluations }}</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Completed Evaluations</h3>
+      <p class="stat-number">{{ stats.completed_evaluations }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2d3748;
+  }
+</style>
+{% endblock %}

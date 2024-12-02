@@ -1,0 +1,90 @@
+{% extends "admin/base.html" %} {% import "macros.html" as macros %} {% block
+admin_content %}
+<div class="users-container">
+  <h2>User Management</h2>
+
+  <div class="users-table">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Registration Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users.items %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>
+            <span
+              class="status-badge {% if user.is_verified %}verified{% else %}unverified{% endif %}"
+            >
+              {{ 'Verified' if user.is_verified else 'Unverified' }}
+            </span>
+          </td>
+          <td>
+            <button
+              class="btn btn-danger"
+              onclick="deleteUser('{{ user.id }}')"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {{ macros.render_pagination(users) }}
+</div>
+
+<style>
+  .users-table {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    background: #f8fafc;
+    font-weight: 500;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+  }
+
+  .status-badge.verified {
+    background: #c6f6d5;
+    color: #2f855a;
+  }
+
+  .status-badge.unverified {
+    background: #fed7d7;
+    color: #c53030;
+  }
+</style>
+{% endblock %}

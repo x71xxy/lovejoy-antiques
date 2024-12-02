@@ -1,0 +1,188 @@
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
+<div class="hero-section">
+  <div class="hero-content">
+    <h1>Welcome to Lovejoy Antiques</h1>
+    <p class="subtitle">Your Trusted Antique Evaluation Platform</p>
+    {% if current_user.is_authenticated %}
+    <p class="welcome-text">Welcome back, {{ current_user.username }}!</p>
+    <div class="action-buttons">
+      <a href="{{ url_for('main.request_evaluation') }}" class="btn btn-primary"
+        >Start Evaluation</a
+      >
+      <a href="{{ url_for('main.my_evaluations') }}" class="btn btn-outline"
+        >View History</a
+      >
+    </div>
+    {% else %}
+    <div class="action-buttons">
+      <a href="{{ url_for('main.register') }}" class="btn btn-primary"
+        >Register Now</a
+      >
+      <a href="{{ url_for('main.login') }}" class="btn btn-outline">Login</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="features-section">
+  <h2 class="section-title">Our Services</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🏺</div>
+      <h3>Professional Evaluation</h3>
+      <p>Accurate antique valuations by experienced experts</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Secure and Reliable</h3>
+      <p>Strict information protection mechanisms to ensure your privacy</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Fast Response</h3>
+      <p>Efficient evaluation process, quick access to professional opinions</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero-section {
+    background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+    color: white;
+    padding: 6rem 2rem;
+    text-align: center;
+  }
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+    color: #e2e8f0;
+    margin-bottom: 2rem;
+  }
+
+  .welcome-text {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: #4299e1;
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: #3182ce;
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .features-section {
+    padding: 4rem 2rem;
+    background: #f7fafc;
+    flex: 1;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 2rem;
+    color: #2d3748;
+    margin-bottom: 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+  }
+
+  .feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .feature-card h3 {
+    color: #2d3748;
+    margin-bottom: 1rem;
+  }
+
+  .feature-card p {
+    color: #718096;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .hero-section {
+      padding: 3rem 1rem;
+    }
+
+    .hero-content h1 {
+      font-size: 2rem;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+    }
+
+    .features-section {
+      padding: 2rem 1rem;
+    }
+  }
+</style>
+{% endblock %}
