@@ -12,12 +12,12 @@ class Config:
     RECAPTCHA_OPTIONS = {'theme': 'light'}
     
     # 邮件配置
-    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.qq.com')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = ('Lovejoy Antiques', os.environ.get('MAIL_USERNAME'))
+    MAIL_SERVER = 'smtp.qq.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = '1249192949@qq.com'
+    MAIL_PASSWORD = 'pmkczfnklfytjagf'
+    MAIL_DEFAULT_SENDER = ('Lovejoy Antiques', '1249192949@qq.com')
     
     # 邮件验证配置
     VERIFY_EMAIL_SALT = 'email-verification'

@@ -21,15 +21,12 @@ def send_email(subject, recipients, text_body, html_body):
             recipients=recipients,
             body=text_body,
             html=html_body,
-            sender=('Lovejoy Antiques', current_app.config['MAIL_USERNAME'])
+            sender=current_app.config['MAIL_DEFAULT_SENDER']
         )
-        Thread(
-            target=send_async_email,
-            args=(current_app._get_current_object(), msg)
-        ).start()
+        mail.send(msg)
         return True
     except Exception as e:
-        current_app.logger.error(f"Error preparing email: {str(e)}")
+        current_app.logger.error(f"Error sending email: {str(e)}")
         return False
 
 def send_verification_email(temp_user):
