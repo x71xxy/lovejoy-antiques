@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login_manager
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 import pyotp
+import jwt
 
 from datetime import datetime
 from app import db
@@ -94,6 +95,36 @@ class User(UserMixin, db.Model):
     @property
     def is_administrator(self):
         return self.is_admin
+    
+    def get_reset_password_token(self, expires_in=3600):
+        """生成密码重置令牌"""
+        try:
+            token = jwt.encode(
+                {
+                    'reset_password': self.email,
+                    'exp': datetime.utcnow() + timedelta(seconds=expires_in)
+                },
+                current_app.config['SECRET_KEY'],
+                algorithm='HS256'
+            )
+            return token
+        except Exception as e:
+            current_app.logger.error(f"Error generating reset token: {str(e)}")
+            return None
+    
+    @staticmethod
+    def verify_reset_password_token(token):
+        """验证密码重置令牌"""
+        try:
+            data = jwt.decode(
+                token,
+                current_app.config['SECRET_KEY'],
+                algorithms=['HS256']
+            )
+            return data['reset_password']
+        except Exception as e:
+            current_app.logger.error(f"Error verifying reset token: {str(e)}")
+            return None
 
 class TempUser(db.Model):
     __tablename__ = 'temp_users'

@@ -5,6 +5,7 @@ from app import mail
 import jwt
 from datetime import datetime, timedelta
 from threading import Thread
+from app.models.user import User
 
 def send_async_email(app, msg):
     with app.app_context():
@@ -100,17 +101,4 @@ If you did not request a password reset, simply ignore this email.
 
 def verify_reset_token(token):
     """Verify reset token"""
-    try:
-        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-        return data['reset_password']
-    except:
-        return None
-
-def generate_reset_token(email):
-    """Generate password reset token"""
-    expires = datetime.utcnow() + timedelta(minutes=30)
-    return jwt.encode(
-        {'reset_password': email, 'exp': expires},
-        current_app.config['SECRET_KEY'],
-        algorithm='HS256'
-    )
+    return User.verify_reset_password_token(token)
