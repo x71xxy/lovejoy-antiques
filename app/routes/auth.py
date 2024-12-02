@@ -232,10 +232,18 @@ def reset_password_request():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            send_reset_email(user)
-            flash('Check your email for instructions to reset your password', 'info')
-            return redirect(url_for('main.login'))
-        flash('Email address not found', 'error')
+            try:
+                if send_reset_email(user):
+                    flash('Check your email for instructions to reset your password', 'info')
+                    return redirect(url_for('main.login'))
+                else:
+                    current_app.logger.error("Failed to send reset email")
+                    flash('Error sending email. Please try again later.', 'error')
+            except Exception as e:
+                current_app.logger.error(f"Reset password error: {str(e)}")
+                flash('An error occurred. Please try again later.', 'error')
+        else:
+            flash('Email address not found', 'error')
     return render_template('reset_password_request.html', form=form)
 
 @main.route('/reset_password/<token>', methods=['GET', 'POST'])

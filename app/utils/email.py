@@ -4,6 +4,32 @@ from flask_mail import Message
 from app import mail
 import jwt
 from datetime import datetime, timedelta
+from threading import Thread
+
+def send_async_email(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Failed to send email: {str(e)}")
+
+def send_email(subject, recipients, text_body, html_body):
+    try:
+        msg = Message(
+            subject=subject,
+            recipients=recipients,
+            body=text_body,
+            html=html_body,
+            sender=current_app.config['MAIL_DEFAULT_SENDER']
+        )
+        Thread(
+            target=send_async_email,
+            args=(current_app._get_current_object(), msg)
+        ).start()
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Error preparing email: {str(e)}")
+        return False
 
 def send_verification_email(temp_user):
     """Send verification email"""
@@ -48,16 +74,29 @@ def generate_token(email):
     )
 
 def send_reset_email(user):
-    """Send password reset email"""
-    token = generate_reset_token(user.email)
-    msg = Message(
-        'Reset Your Password',
-        recipients=[user.email]
-    )
-    reset_url = url_for('main.reset_password', token=token, _external=True)
-    msg.body = f'''To reset your password, visit the following link: {reset_url}
-If you did not request a password reset, please ignore this email.'''
-    mail.send(msg)
+    """发送密码重置邮件"""
+    try:
+        token = user.get_reset_password_token()
+        send_email(
+            subject='Reset Your Password',
+            recipients=[user.email],
+            text_body=f'''To reset your password, visit the following link:
+{url_for('main.reset_password', token=token, _external=True)}
+
+If you did not request a password reset, simply ignore this email.
+''',
+            html_body=f'''
+<p>To reset your password, click the following link:</p>
+<p><a href="{url_for('main.reset_password', token=token, _external=True)}">
+    Reset Password
+</a></p>
+<p>If you did not request a password reset, simply ignore this email.</p>
+'''
+        )
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Error in send_reset_email: {str(e)}")
+        return False
 
 def verify_reset_token(token):
     """Verify reset token"""

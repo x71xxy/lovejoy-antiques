@@ -28,7 +28,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = ('Lovejoy Antiques', MAIL_USERNAME)
+    MAIL_DEFAULT_SENDER = ('Lovejoy Antiques', os.environ.get('MAIL_USERNAME'))
     
     # File upload configuration
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # Limit single file size to 5MB
