@@ -18,15 +18,28 @@ def send_email(subject, recipients, text_body, html_body):
     try:
         msg = Message(
             subject=subject,
+            sender=current_app.config['MAIL_DEFAULT_SENDER'],
             recipients=recipients,
             body=text_body,
-            html=html_body,
-            sender=current_app.config['MAIL_DEFAULT_SENDER']
+            html=html_body
         )
+        
+        # 打印调试信息
+        current_app.logger.info(f"Preparing to send email:")
+        current_app.logger.info(f"From: {msg.sender}")
+        current_app.logger.info(f"To: {msg.recipients}")
+        current_app.logger.info(f"Subject: {msg.subject}")
+        
+        # 同步发送邮件（为了调试）
         mail.send(msg)
+        current_app.logger.info("Email sent successfully")
         return True
+        
     except Exception as e:
         current_app.logger.error(f"Error sending email: {str(e)}")
+        current_app.logger.error(f"Mail server: {current_app.config['MAIL_SERVER']}")
+        current_app.logger.error(f"Mail port: {current_app.config['MAIL_PORT']}")
+        current_app.logger.error(f"Mail username: {current_app.config['MAIL_USERNAME']}")
         return False
 
 def send_verification_email(temp_user):
