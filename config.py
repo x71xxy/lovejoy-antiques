@@ -33,7 +33,7 @@ class Config:
     
     # File upload configuration
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # Limit single file size to 5MB
-    UPLOAD_FOLDER = '/opt/render/project/src/uploads' if os.environ.get('FLASK_ENV') == 'production' else 'app/static/uploads'
+    UPLOAD_FOLDER = '/tmp/uploads' if os.environ.get('FLASK_ENV') == 'production' else 'app/static/uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     MAX_IMAGE_COUNT = 5  # Maximum 5 images per evaluation
     
@@ -53,7 +53,7 @@ class Config:
     RECAPTCHA_OPTIONS = {'theme': 'clean'}
     
     # 域名配置
-    SERVER_NAME = os.environ.get('SERVER_NAME', 'lovejoy.xiong71.xyz')
+    # SERVER_NAME = os.environ.get('SERVER_NAME', 'lovejoy.xiong71.xyz')
     PREFERRED_URL_SCHEME = 'https'
 
 # Updated for Render deployment

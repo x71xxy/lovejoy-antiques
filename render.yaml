@@ -9,11 +9,12 @@ services:
       pip install -r requirements.txt
     startCommand: |
       source .venv/bin/activate
-      gunicorn wsgi:app
+      gunicorn wsgi:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
-      - key: DATABASE_URL
+      - key: FLASK_ENV
+        value: production
         fromDatabase:
           name: lovejoy_kdwp
           property: connectionString
