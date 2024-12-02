@@ -5,6 +5,7 @@ from app import mail
 import jwt
 from datetime import datetime, timedelta
 import smtplib
+import ssl
 from app.models.user import User
 
 def send_async_email(app, msg):
@@ -26,38 +27,34 @@ def send_email(subject, recipients, text_body, html_body):
             html=html_body
         )
         
-        # 创建 SMTP 连接
-        smtp = smtplib.SMTP(
+        # 创建 SSL 上下文
+        context = ssl.create_default_context()
+        
+        # 使用 SMTP_SSL
+        with smtplib.SMTP_SSL(
             current_app.config['MAIL_SERVER'],
-            current_app.config['MAIL_PORT']
-        )
-        smtp.ehlo()  # 发送 EHLO 命令
-        smtp.starttls()  # 启用 TLS
-        smtp.ehlo()  # TLS 连接后再次发送 EHLO
-        
-        # 登录
-        smtp.login(
-            current_app.config['MAIL_USERNAME'],
-            current_app.config['MAIL_PASSWORD']
-        )
-        
-        # 发送邮件
-        smtp.sendmail(
-            msg.sender[1],  # 使用元组中的邮箱地址
-            recipients,
-            msg.as_string()
-        )
-        
-        # 关闭连接
-        smtp.quit()
-        
-        current_app.logger.info(f"Email sent successfully to {recipients}")
-        return True
+            465,  # 使用 SSL 的标准端口
+            context=context
+        ) as smtp:
+            # 登录
+            smtp.login(
+                current_app.config['MAIL_USERNAME'],
+                current_app.config['MAIL_PASSWORD']
+            )
+            
+            # 发送邮件
+            smtp.sendmail(
+                msg.sender[1],  # 使用元组中的邮箱地址
+                recipients,
+                msg.as_string()
+            )
+            
+            current_app.logger.info(f"Email sent successfully to {recipients}")
+            return True
         
     except Exception as e:
         current_app.logger.error(f"Error sending email: {str(e)}")
         current_app.logger.error(f"Mail settings: SERVER={current_app.config['MAIL_SERVER']}, "
-                               f"PORT={current_app.config['MAIL_PORT']}, "
                                f"USERNAME={current_app.config['MAIL_USERNAME']}")
         return False
 

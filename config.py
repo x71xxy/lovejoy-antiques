@@ -24,15 +24,15 @@ class Config:
     
     # Mail server configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.qq.com')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_TLS = True
+    MAIL_PORT = 465  # 改为 SSL 端口
+    MAIL_USE_TLS = False  # 不使用 TLS
+    MAIL_USE_SSL = True  # 使用 SSL
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '1249192949@qq.com')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = (
         'Lovejoy Antiques',
         os.environ.get('MAIL_USERNAME', '1249192949@qq.com')
     )
-    MAIL_USE_SSL = False
     MAIL_DEBUG = True
     
     # File upload configuration
