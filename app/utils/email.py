@@ -4,58 +4,32 @@ from flask_mail import Message
 from app import mail
 import jwt
 from datetime import datetime, timedelta
-import smtplib
-import ssl
+from threading import Thread
 from app.models.user import User
 
 def send_async_email(app, msg):
     with app.app_context():
         try:
-            with mail.connect() as conn:
-                conn.send(msg)
+            mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Failed to send email: {str(e)}")
-            raise e
 
 def send_email(subject, recipients, text_body, html_body):
     try:
         msg = Message(
             subject=subject,
-            sender=current_app.config['MAIL_DEFAULT_SENDER'],
             recipients=recipients,
             body=text_body,
-            html=html_body
+            html=html_body,
+            sender=('Lovejoy Antiques', current_app.config['MAIL_USERNAME'])
         )
-        
-        # 创建 SSL 上下文
-        context = ssl.create_default_context()
-        
-        # 使用 SMTP_SSL
-        with smtplib.SMTP_SSL(
-            current_app.config['MAIL_SERVER'],
-            465,  # 使用 SSL 的标准端口
-            context=context
-        ) as smtp:
-            # 登录
-            smtp.login(
-                current_app.config['MAIL_USERNAME'],
-                current_app.config['MAIL_PASSWORD']
-            )
-            
-            # 发送邮件
-            smtp.sendmail(
-                msg.sender[1],  # 使用元组中的邮箱地址
-                recipients,
-                msg.as_string()
-            )
-            
-            current_app.logger.info(f"Email sent successfully to {recipients}")
-            return True
-        
+        Thread(
+            target=send_async_email,
+            args=(current_app._get_current_object(), msg)
+        ).start()
+        return True
     except Exception as e:
-        current_app.logger.error(f"Error sending email: {str(e)}")
-        current_app.logger.error(f"Mail settings: SERVER={current_app.config['MAIL_SERVER']}, "
-                               f"USERNAME={current_app.config['MAIL_USERNAME']}")
+        current_app.logger.error(f"Error preparing email: {str(e)}")
         return False
 
 def send_verification_email(temp_user):
@@ -67,28 +41,29 @@ def send_verification_email(temp_user):
             _external=True
         )
         
-        return send_email(
-            subject='Verify Your Lovejoy Antiques Account',
+        send_email(
+            subject='验证您的 Lovejoy Antiques 账号',
             recipients=[temp_user.email],
-            text_body=f'''Dear {temp_user.username},
+            text_body=f'''亲爱的 {temp_user.username}：
 
-Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:
+感谢您注册 Lovejoy Antiques！请点击以下链接验证您的邮箱：
 {verification_url}
 
-This link will expire in 1 hour.
-If you did not request this, please ignore this email.
+此链接将在1小时后过期。
+如果您没有请求此验证，请忽略此邮件。
 
-Best regards,
-Lovejoy Antiques Team''',
+祝好，
+Lovejoy Antiques 团队''',
             html_body=f'''
-<p>Dear {temp_user.username},</p>
-<p>Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:</p>
-<p><a href="{verification_url}">Verify Email</a></p>
-<p>This link will expire in 1 hour.</p>
-<p>If you did not request this, please ignore this email.</p>
-<p>Best regards,<br>Lovejoy Antiques Team</p>
+<p>亲爱的 {temp_user.username}：</p>
+<p>感谢您注册 Lovejoy Antiques！请点击以下链接验证您的邮箱：</p>
+<p><a href="{verification_url}">验证邮箱</a></p>
+<p>此链接将在1小时后过期。</p>
+<p>如果您没有请求此验证，请忽略此邮件。</p>
+<p>祝好，<br>Lovejoy Antiques 团队</p>
 '''
         )
+        return True
     except Exception as e:
         current_app.logger.error(f"Failed to send verification email: {str(e)}")
         return False
@@ -109,19 +84,25 @@ def send_reset_email(user):
     try:
         token = user.get_reset_password_token()
         send_email(
-            subject='Reset Your Password',
+            subject='重置您的 Lovejoy Antiques 密码',
             recipients=[user.email],
-            text_body=f'''To reset your password, visit the following link:
+            text_body=f'''亲爱的用户：
+
+您请求重置密码。请点击以下链接重置密码：
 {url_for('main.reset_password', token=token, _external=True)}
 
-If you did not request a password reset, simply ignore this email.
-''',
+如果您没有请求重置密码，请忽略此邮件。
+
+祝好，
+Lovejoy Antiques 团队''',
             html_body=f'''
-<p>To reset your password, click the following link:</p>
+<p>亲爱的用户：</p>
+<p>您请求重置密码。请点击以下链接重置密码：</p>
 <p><a href="{url_for('main.reset_password', token=token, _external=True)}">
-    Reset Password
+    重置密码
 </a></p>
-<p>If you did not request a password reset, simply ignore this email.</p>
+<p>如果您没有请求重置密码，请忽略此邮件。</p>
+<p>祝好，<br>Lovejoy Antiques 团队</p>
 '''
         )
         return True
