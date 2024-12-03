@@ -115,30 +115,32 @@ def register_pending():
 @main.route('/verify-email/<token>')
 def verify_email(token):
     try:
+        # 从令牌中获取邮箱
         temp_user = TempUser.query.filter_by(verify_token=token).first()
         
         if not temp_user:
             flash('Invalid or expired verification link', 'error')
             return redirect(url_for('main.register'))
             
+        # 检查令牌是否过期
         if datetime.now() > temp_user.expires_at:
             db.session.delete(temp_user)
             db.session.commit()
-            flash('Verification link expired, please register again', 'error')
+            flash('Verification link has expired, please register again', 'error')
             return redirect(url_for('main.register'))
             
         # 创建正式用户
         user = User(
             username=temp_user.username,
             email=temp_user.email,
-            phone=temp_user.phone if hasattr(temp_user, 'phone') else None,
+            phone=temp_user.phone,
             password_hash=temp_user.password_hash,
             is_verified=True
         )
         
         try:
             db.session.add(user)
-            db.session.delete(temp_user)
+            db.session.delete(temp_user)  # 删除临时用户
             db.session.commit()
             flash('Email verified successfully! Please login', 'success')
             return redirect(url_for('main.login'))
