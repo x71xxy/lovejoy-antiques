@@ -34,9 +34,11 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     
     def set_password(self, password):
+        """设置密码"""
         self.password_hash = generate_password_hash(password)
-        
+    
     def check_password(self, password):
+        """验证密码"""
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)

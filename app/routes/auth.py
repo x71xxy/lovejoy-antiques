@@ -196,63 +196,44 @@ def verify_email(token):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    
+        
     form = LoginForm()
     if form.validate_on_submit():
-        # 添加调试日志
-        current_app.logger.info(f"Attempting login for user: {form.username.data}")
-        
-        user = User.query.filter_by(username=form.username.data).first()
-        
-        # 添加更多调试信息
-        if user:
-            current_app.logger.info(f"User found: {user.username}")
-            current_app.logger.info(f"Is verified: {user.is_verified}")
-            current_app.logger.info(f"Is admin: {user.is_admin}")
-            password_check = user.check_password(form.password.data)
-            current_app.logger.info(f"Password check result: {password_check}")
-        else:
-            current_app.logger.info("User not found in database")
-        
-        # 检查账户是否被锁定
-        if user and user.is_locked:
-            remaining_time = (user.locked_until - datetime.utcnow()).seconds // 60
-            flash(f'Account is locked, please try again in {remaining_time} minutes', 'error')
-            return render_template('login.html', form=form)
+        try:
+            user = User.query.filter_by(username=form.username.data).first()
             
-        # 检查密码
-        if user and user.check_password(form.password.data):
-            # 登录成功，重置计数器
-            user.login_attempts = 0
-            user.locked_until = None
-            db.session.commit()
+            # 添加详细的日志记录
+            current_app.logger.info(f"Login attempt for user: {form.username.data}")
             
-            # 如果用户启用了双因素认证
-            if user.is_2fa_enabled:
-                session['2fa_user_id'] = user.id
-                return redirect(url_for('main.verify_2fa'))
-            
-            login_user(user, remember=form.remember_me.data)
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect(url_for('main.home'))
-        else:
-            if user:
-                # 更新失败次数
-                user.login_attempts = (user.login_attempts or 0) + 1
-                user.last_login_attempt = datetime.utcnow()
-                
-                # 如果失败次数达到限制
-                if user.login_attempts >= 5:
-                    user.locked_until = datetime.utcnow() + timedelta(minutes=30)
-                    flash('Too many failed login attempts, account locked for 30 minutes', 'error')
-                else:
-                    remaining_attempts = 5 - user.login_attempts
-                    flash(f'Invalid password, {remaining_attempts} attempts remaining', 'error')
-                db.session.commit()
-            else:
+            if user is None:
+                current_app.logger.warning(f"Login failed: User {form.username.data} not found")
                 flash('Invalid username or password', 'error')
+                return render_template('login.html', form=form)
+            
+            if not user.check_password(form.password.data):
+                current_app.logger.warning(f"Login failed: Invalid password for user {form.username.data}")
+                flash('Invalid username or password', 'error')
+                return render_template('login.html', form=form)
+            
+            # 检查邮箱验证状态
+            if not user.is_verified:
+                current_app.logger.warning(f"Login failed: User {form.username.data} not verified")
+                flash('Please verify your email before logging in', 'error')
+                return render_template('login.html', form=form)
+            
+            # 登录成功
+            login_user(user, remember=form.remember_me.data)
+            current_app.logger.info(f"User {form.username.data} logged in successfully")
+            
+            next_page = request.args.get('next')
+            if not next_page or url_parse(next_page).netloc != '':
+                next_page = url_for('main.home')
+            return redirect(next_page)
+            
+        except Exception as e:
+            current_app.logger.error(f"Login error: {str(e)}")
+            flash('An error occurred during login. Please try again.', 'error')
+            return render_template('login.html', form=form)
     
     return render_template('login.html', form=form)
 
