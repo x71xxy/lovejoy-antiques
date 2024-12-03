@@ -53,24 +53,37 @@ def request_evaluation():
     
     if form.validate_on_submit():
         try:
+            files = request.files.getlist('images')
+            if not files or files[0].filename == '':
+                flash('Please select at least one image', 'error')
+                return render_template('request_evaluation.html', form=form)
+            
             # Check file count
-            if len(request.files.getlist('images')) > current_app.config['MAX_IMAGE_COUNT']:
+            if len(files) > current_app.config['MAX_IMAGE_COUNT']:
                 flash('Maximum 5 images allowed', 'error')
                 return render_template('request_evaluation.html', form=form)
-                
+            
             # Process image upload
             image_paths = []
-            for image in request.files.getlist('images'):
+            for image in files:
                 if image and allowed_file(image.filename):
                     if not validate_image(image):
                         flash('Invalid image file', 'error')
                         return render_template('request_evaluation.html', form=form)
-                        
+                    
                     filename = secure_filename(image.filename)
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                     unique_filename = f"{timestamp}_{filename}"
-                    image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
+                    
+                    # 使用安全的文件保存函数
+                    if not save_uploaded_file(image, unique_filename):
+                        flash('Failed to save image', 'error')
+                        return render_template('request_evaluation.html', form=form)
+                    
                     image_paths.append(unique_filename)
+                else:
+                    flash('Invalid file type', 'error')
+                    return render_template('request_evaluation.html', form=form)
             
             # Create evaluation request
             evaluation = EvaluationRequest(

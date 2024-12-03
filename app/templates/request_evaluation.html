@@ -34,16 +34,29 @@ block content %}
       </div>
 
       <div class="form-group">
-        <label for="file-upload" class="custom-file-upload">
-          <i class="upload-icon">📁</i>
-          <span>Choose Files</span>
-        </label>
-        {{ form.images(id="file-upload", class="form-control hidden",
-        multiple=true, accept="image/*", onchange="validateImages(this)") }}
-        <small class="text-muted">
-          Maximum 5 images, each under 5MB. Supported formats: JPG, PNG, GIF
-        </small>
-        <div class="error-message" id="image-error"></div>
+        <label for="images">Images (Max 5 images, 5MB each)</label>
+        <div class="upload-area" id="uploadArea">
+          <input
+            type="file"
+            name="images"
+            id="imageInput"
+            multiple
+            accept=".jpg,.jpeg,.png,.gif"
+            style="display: none"
+          />
+          <div
+            class="upload-placeholder"
+            onclick="document.getElementById('imageInput').click()"
+          >
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Click or drag images here</p>
+          </div>
+          <div id="previewContainer" class="preview-container"></div>
+        </div>
+        <div id="uploadProgress" class="upload-progress" style="display: none">
+          <div class="progress-bar"></div>
+          <span class="progress-text">Uploading...</span>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary">
@@ -87,6 +100,63 @@ block content %}
         e.preventDefault();
       }
     });
+
+  document
+    .getElementById("imageInput")
+    .addEventListener("change", function (e) {
+      const files = e.target.files;
+      const previewContainer = document.getElementById("previewContainer");
+      previewContainer.innerHTML = "";
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          const previewItem = document.createElement("div");
+          previewItem.className = "preview-item";
+
+          reader.onload = function (e) {
+            previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button type="button" class="remove-btn" onclick="removePreview(this)">×</button>
+                `;
+          };
+
+          reader.readAsDataURL(file);
+          previewContainer.appendChild(previewItem);
+        }
+      }
+    });
+
+  function removePreview(btn) {
+    btn.parentElement.remove();
+  }
+
+  // 添加拖放支持
+  const uploadArea = document.getElementById("uploadArea");
+
+  uploadArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = "#4299e1";
+    uploadArea.style.background = "#f0f7ff";
+  });
+
+  uploadArea.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = "#ccc";
+    uploadArea.style.background = "#f8f9fa";
+  });
+
+  uploadArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadArea.style.borderColor = "#ccc";
+    uploadArea.style.background = "#f8f9fa";
+
+    const files = e.dataTransfer.files;
+    document.getElementById("imageInput").files = files;
+    const event = new Event("change");
+    document.getElementById("imageInput").dispatchEvent(event);
+  });
 </script>
 
 <style>
@@ -200,6 +270,89 @@ block content %}
 
   .hidden {
     display: none;
+  }
+
+  .upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+  }
+
+  .upload-area:hover {
+    border-color: #4299e1;
+    background: #f0f7ff;
+  }
+
+  .upload-placeholder {
+    cursor: pointer;
+  }
+
+  .upload-placeholder i {
+    font-size: 2rem;
+    color: #4299e1;
+    margin-bottom: 0.5rem;
+  }
+
+  .preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+
+  .preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+  }
+
+  .preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .preview-item .remove-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .upload-progress {
+    margin-top: 1rem;
+    background: #edf2f7;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: #4299e1;
+    width: 0;
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    display: block;
+    text-align: center;
+    font-size: 0.875rem;
+    color: #4a5568;
+    margin-top: 0.25rem;
   }
 </style>
 {% endblock %}
