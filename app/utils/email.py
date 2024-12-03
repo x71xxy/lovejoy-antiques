@@ -58,9 +58,9 @@ def send_verification_email(temp_user):
         send_email(
             subject='Verify Your Lovejoy Antiques Account',
             recipients=[temp_user.email],
-            text_body=f'''Dear {temp_user.username}:
+            text_body=f'''Dear {temp_user.username},
 
-Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:
+Thank you for registering with Lovejoy Antiques! Please click the link below to verify your email:
 {verification_url}
 
 This link will expire in 1 hour.
@@ -69,8 +69,8 @@ If you did not request this verification, please ignore this email.
 Best regards,
 Lovejoy Antiques Team''',
             html_body=f'''
-<p>Dear {temp_user.username}:</p>
-<p>Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:</p>
+<p>Dear {temp_user.username},</p>
+<p>Thank you for registering with Lovejoy Antiques! Please click the link below to verify your email:</p>
 <p><a href="{verification_url}">Verify Email</a></p>
 <p>This link will expire in 1 hour.</p>
 <p>If you did not request this verification, please ignore this email.</p>
@@ -99,7 +99,7 @@ def send_reset_email(user):
         send_email(
             subject='Reset Your Lovejoy Antiques Password',
             recipients=[user.email],
-            text_body=f'''Please click the following link to reset your password:
+            text_body=f'''Please click the link below to reset your password:
 {url_for('main.reset_password', token=token, _external=True)}
 
 If you did not request a password reset, please ignore this email.
@@ -107,7 +107,7 @@ If you did not request a password reset, please ignore this email.
 Best regards,
 Lovejoy Antiques Team''',
             html_body=f'''
-<p>Please click the following link to reset your password:</p>
+<p>Please click the link below to reset your password:</p>
 <p><a href="{url_for('main.reset_password', token=token, _external=True)}">
     Reset Password
 </a></p>

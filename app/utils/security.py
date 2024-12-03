@@ -40,25 +40,25 @@ def sanitize_filename(filename: str) -> str:
     return filename 
 
 def save_uploaded_file(file, filename):
-    """安全地保存上传的文件"""
+    """Safely save uploaded file"""
     try:
-        # 确保上传目录存在
+        # Ensure upload directory exists
         upload_dir = current_app.config['UPLOAD_FOLDER']
         if not os.path.exists(upload_dir):
             os.makedirs(upload_dir, exist_ok=True)
             os.chmod(upload_dir, 0o755)
         
-        # 构建完整的文件路径
+        # Build complete file path
         filepath = os.path.join(upload_dir, filename)
         
-        # 保存文件
+        # Save file
         file.save(filepath)
         
-        # 验证文件是否成功保存
+        # Verify file was saved successfully
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"File was not saved: {filepath}")
         
-        # 设置适当的文件权限
+        # Set appropriate file permissions
         os.chmod(filepath, 0o644)
         
         return True

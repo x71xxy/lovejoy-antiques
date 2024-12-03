@@ -37,8 +37,7 @@ class Config:
     
     # File upload configuration
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB limit
-    UPLOAD_FOLDER = 'app/static/uploads'  # 修改为相对路径
-    UPLOAD_URL = '/static/uploads/'  # 添加访问URL配置
+    UPLOAD_FOLDER = '/opt/render/project/src/app/static/uploads'  # 修改为 Render 可写的路径
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     MAX_IMAGE_COUNT = 5
     

@@ -34,12 +34,11 @@ block content %}
       <div class="images-group">
         <label>Uploaded Images</label>
         <div class="image-gallery">
-          {% for image in evaluation.images %}
-          <div class="image-container">
+          {% for image_path in evaluation.images %}
+          <div class="image-item">
             <img
-              src="{{ url_for('static', filename='uploads/' + image) }}"
+              src="{{ url_for('static', filename='uploads/' + image_path) }}"
               alt="Evaluation Image"
-              class="evaluation-image"
             />
           </div>
           {% endfor %}
