@@ -34,14 +34,21 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     
     def set_password(self, password):
-        """设置密码"""
         self.password_hash = generate_password_hash(password)
-    
+        
     def check_password(self, password):
         """验证密码"""
-        if not self.password_hash:
+        try:
+            if not self.password_hash:
+                return False
+            # 添加日志以便调试
+            is_valid = check_password_hash(self.password_hash, password)
+            if not is_valid:
+                current_app.logger.info(f"Password check failed for user: {self.username}")
+            return is_valid
+        except Exception as e:
+            current_app.logger.error(f"Password check error for user {self.username}: {str(e)}")
             return False
-        return check_password_hash(self.password_hash, password)
         
     @property
     def is_authenticated(self):
@@ -51,7 +58,7 @@ class User(UserMixin, db.Model):
     @property
     def is_active(self):
         """用户是否已激活"""
-        return True  # 允许未验证的用户也能登录
+        return True  # 允许所有用户登录，不再检查 is_verified
         
     @property
     def is_anonymous(self):

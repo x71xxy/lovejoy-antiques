@@ -1,7 +1,6 @@
 import os
 from app import create_app, db
 from sqlalchemy import text
-from app.models.user import User
 
 def reset_database():
     print("\n=== Starting Database Reset ===")
@@ -21,7 +20,7 @@ def reset_database():
             # Create new tables
             print("Creating new tables...")
             db.create_all()
-
+            
             db.session.commit()
             print("Database reset successful!")
             

@@ -198,36 +198,47 @@ def login():
         return redirect(url_for('main.home'))
         
     form = LoginForm()
+    
     if form.validate_on_submit():
         try:
             user = User.query.filter_by(username=form.username.data).first()
             
             # 添加详细的日志记录
-            current_app.logger.info(f"Login attempt for user: {form.username.data}")
-            
-            if user is None:
-                current_app.logger.warning(f"Login failed: User {form.username.data} not found")
+            if not user:
+                current_app.logger.info(f"Login attempt failed: User not found - {form.username.data}")
                 flash('Invalid username or password', 'error')
                 return render_template('login.html', form=form)
             
+            # 检查密码
             if not user.check_password(form.password.data):
-                current_app.logger.warning(f"Login failed: Invalid password for user {form.username.data}")
+                current_app.logger.info(f"Login attempt failed: Invalid password for user {user.username}")
                 flash('Invalid username or password', 'error')
                 return render_template('login.html', form=form)
             
-            # 检查邮箱验证状态
-            if not user.is_verified:
-                current_app.logger.warning(f"Login failed: User {form.username.data} not verified")
-                flash('Please verify your email before logging in', 'error')
+            # 检查账户是否被锁定
+            if user.is_locked:
+                flash('Account is locked. Please try again later.', 'error')
                 return render_template('login.html', form=form)
             
-            # 登录成功
-            login_user(user, remember=form.remember_me.data)
-            current_app.logger.info(f"User {form.username.data} logged in successfully")
+            # 重置登录尝试次数
+            user.login_attempts = 0
+            user.locked_until = None
+            db.session.commit()
             
+            # 检查是否启用了2FA
+            if user.is_2fa_enabled:
+                session['2fa_user_id'] = user.id
+                return redirect(url_for('main.verify_2fa'))
+            
+            # 登录用户
+            login_user(user, remember=form.remember_me.data)
+            current_app.logger.info(f"User {user.username} logged in successfully")
+            
+            # 获取下一个页面的 URL
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
                 next_page = url_for('main.home')
+                
             return redirect(next_page)
             
         except Exception as e:
