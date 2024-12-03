@@ -58,7 +58,12 @@ def request_evaluation():
                 flash('Maximum 5 images allowed', 'error')
                 return render_template('request_evaluation.html', form=form)
                 
-            # Process image upload
+            # 确保上传目录存在
+            upload_dir = os.path.join(current_app.root_path, 'static/uploads')
+            if not os.path.exists(upload_dir):
+                os.makedirs(upload_dir, exist_ok=True)
+            
+            # 处理图片上传
             image_paths = []
             for image in request.files.getlist('images'):
                 if image and allowed_file(image.filename):
@@ -69,7 +74,12 @@ def request_evaluation():
                     filename = secure_filename(image.filename)
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                     unique_filename = f"{timestamp}_{filename}"
-                    image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename))
+                    
+                    # 使用相对路径保存文件
+                    filepath = os.path.join(upload_dir, unique_filename)
+                    image.save(filepath)
+                    
+                    # 只存储文件名，不存储完整路径
                     image_paths.append(unique_filename)
             
             # Create evaluation request

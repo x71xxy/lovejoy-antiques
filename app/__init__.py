@@ -20,12 +20,12 @@ def create_app(config_name=None):
     app.config.from_object(Config)
     
     # 初始化上传目录
-    upload_dir = app.config['UPLOAD_FOLDER']
+    upload_dir = os.path.join(app.root_path, 'static/uploads')
     if not os.path.exists(upload_dir):
         try:
             os.makedirs(upload_dir, exist_ok=True)
-            # 确保目录有正确的权限
             os.chmod(upload_dir, 0o755)
+            app.logger.info(f"Created upload directory: {upload_dir}")
         except Exception as e:
             app.logger.error(f"Failed to create upload directory: {str(e)}")
     
