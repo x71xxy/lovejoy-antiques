@@ -34,28 +34,24 @@ block content %}
       </div>
 
       <div class="form-group">
-        <label for="images">Images (Max 5 images, 5MB each)</label>
-        <div class="upload-area" id="uploadArea">
-          <input
-            type="file"
-            name="images"
-            id="imageInput"
-            multiple
-            accept=".jpg,.jpeg,.png,.gif"
-            style="display: none"
-          />
-          <div
-            class="upload-placeholder"
-            onclick="document.getElementById('imageInput').click()"
-          >
-            <i class="fas fa-cloud-upload-alt"></i>
-            <p>Click or drag images here</p>
-          </div>
-          <div id="previewContainer" class="preview-container"></div>
-        </div>
-        <div id="uploadProgress" class="upload-progress" style="display: none">
+        <label for="file-upload" class="custom-file-upload">
+          <i class="upload-icon">📁</i>
+          <span>Choose Files</span>
+        </label>
+        {{ form.images(id="file-upload", class="form-control hidden",
+        multiple=true, accept="image/*", onchange="handleFileSelect(this)") }}
+        <small class="text-muted">
+          Maximum 5 images, each under 5MB. Supported formats: JPG, PNG, GIF
+        </small>
+        <div class="error-message" id="image-error"></div>
+
+        <!-- 添加预览区域 -->
+        <div id="preview-container" class="preview-container"></div>
+
+        <!-- 添加上传进度条 -->
+        <div id="upload-progress" class="upload-progress hidden">
           <div class="progress-bar"></div>
-          <span class="progress-text">Uploading...</span>
+          <div class="progress-text">0%</div>
         </div>
       </div>
 
@@ -67,119 +63,92 @@ block content %}
 </div>
 
 <script>
-  function validateImages(input) {
+  function handleFileSelect(input) {
     const maxImages = '{{ config["MAX_IMAGE_COUNT"] }}';
     const maxSize = '{{ config["MAX_CONTENT_LENGTH"] }}';
     const errorDiv = document.getElementById("image-error");
+    const previewContainer = document.getElementById("preview-container");
+
+    // 清空预览区域
+    previewContainer.innerHTML = "";
 
     if (input.files.length > maxImages) {
       errorDiv.textContent = `Maximum ${maxImages} images allowed`;
-      input.value = ""; // Clear selection
+      input.value = "";
       return false;
     }
 
-    // Check each file size
+    // 检查每个文件并创建预览
     for (let file of input.files) {
       if (file.size > maxSize) {
         errorDiv.textContent = "Each file must be under 5MB";
         input.value = "";
         return false;
       }
+
+      // 创建预览元素
+      const preview = document.createElement("div");
+      preview.className = "preview-item";
+
+      const img = document.createElement("img");
+      img.className = "preview-image";
+
+      // 创建删除按钮
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-image";
+      removeBtn.innerHTML = "×";
+      removeBtn.onclick = function () {
+        preview.remove();
+        // 这里需要处理文件输入
+        // TODO: 实现文件删除逻辑
+      };
+
+      // 读取文件并显示预览
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      preview.appendChild(img);
+      preview.appendChild(removeBtn);
+      previewContainer.appendChild(preview);
     }
 
-    errorDiv.textContent = ""; // Clear error message
+    errorDiv.textContent = "";
     return true;
   }
 
-  // Validate again before form submission
+  // 模拟上传进度
+  function simulateUpload() {
+    const progressBar = document.querySelector(".progress-bar");
+    const progressText = document.querySelector(".progress-text");
+    const progress = document.getElementById("upload-progress");
+
+    progress.classList.remove("hidden");
+    let width = 0;
+
+    const interval = setInterval(() => {
+      if (width >= 100) {
+        clearInterval(interval);
+      } else {
+        width++;
+        progressBar.style.width = width + "%";
+        progressText.textContent = width + "%";
+      }
+    }, 20);
+  }
+
+  // 表单提交时显示进度
   document
     .querySelector(".evaluation-form")
     .addEventListener("submit", function (e) {
-      const input = document.querySelector('input[type="file"]');
-      if (!validateImages(input)) {
+      if (validateImages(document.querySelector('input[type="file"]'))) {
+        simulateUpload();
+      } else {
         e.preventDefault();
       }
     });
-
-  document
-    .getElementById("imageInput")
-    .addEventListener("change", function (e) {
-      const files = e.target.files;
-      const maxImages = 5; // 最大图片数量
-
-      // 检查图片数量
-      if (files.length > maxImages) {
-        alert(`Maximum ${maxImages} images allowed`);
-        this.value = ""; // 清空选择
-        return;
-      }
-
-      const previewContainer = document.getElementById("previewContainer");
-      previewContainer.innerHTML = "";
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          const previewItem = document.createElement("div");
-          previewItem.className = "preview-item";
-
-          reader.onload = function (e) {
-            previewItem.innerHTML = `
-                      <img src="${e.target.result}" alt="Preview">
-                      <button type="button" class="remove-btn" onclick="removePreview(this)">×</button>
-                  `;
-          };
-
-          reader.readAsDataURL(file);
-          previewContainer.appendChild(previewItem);
-        }
-      }
-    });
-
-  function removePreview(btn) {
-    btn.parentElement.remove();
-  }
-
-  // 添加拖放支持
-  const uploadArea = document.getElementById("uploadArea");
-
-  uploadArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = "#4299e1";
-    uploadArea.style.background = "#f0f7ff";
-  });
-
-  uploadArea.addEventListener("dragleave", (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = "#ccc";
-    uploadArea.style.background = "#f8f9fa";
-  });
-
-  uploadArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = "#ccc";
-    uploadArea.style.background = "#f8f9fa";
-
-    const files = e.dataTransfer.files;
-    if (files.length > 5) {
-      alert("Maximum 5 images allowed");
-      return;
-    }
-
-    document.getElementById("imageInput").files = files;
-    const event = new Event("change");
-    document.getElementById("imageInput").dispatchEvent(event);
-  });
-
-  // 添加表单提交验证
-  document.querySelector("form").addEventListener("submit", function (e) {
-    const files = document.getElementById("imageInput").files;
-    if (files.length > 5) {
-      e.preventDefault();
-      alert("Maximum 5 images allowed");
-    }
-  });
 </script>
 
 <style>
@@ -295,71 +264,47 @@ block content %}
     display: none;
   }
 
-  .upload-area {
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 1rem;
-    background: #f8f9fa;
-    transition: all 0.3s ease;
-  }
-
-  .upload-area:hover {
-    border-color: #4299e1;
-    background: #f0f7ff;
-  }
-
-  .upload-placeholder {
-    cursor: pointer;
-  }
-
-  .upload-placeholder i {
-    font-size: 2rem;
-    color: #4299e1;
-    margin-bottom: 0.5rem;
-  }
-
   .preview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
     margin-top: 1rem;
   }
 
   .preview-item {
     position: relative;
-    width: 100px;
-    height: 100px;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
   }
 
-  .preview-item img {
+  .preview-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 4px;
   }
 
-  .preview-item .remove-btn {
+  .remove-image {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background: #ff4444;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-    text-align: center;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .upload-progress {
     margin-top: 1rem;
-    background: #edf2f7;
-    border-radius: 4px;
+    background: #f3f4f6;
+    border-radius: 8px;
     overflow: hidden;
   }
 
@@ -371,11 +316,10 @@ block content %}
   }
 
   .progress-text {
-    display: block;
     text-align: center;
     font-size: 0.875rem;
     color: #4a5568;
-    margin-top: 0.25rem;
+    padding: 0.25rem;
   }
 </style>
 {% endblock %}

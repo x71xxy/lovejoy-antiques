@@ -25,7 +25,6 @@ import io
 import pyotp
 from PIL import Image
 import base64
-import jwt
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -36,44 +35,34 @@ def register():
     
     if form.validate_on_submit():
         try:
-            errors = []
-            
             # 检查用户名是否已存在于正式用户表
-            if User.query.filter_by(username=form.username.data).first():
-                errors.append('Username already taken')
+            existing_user = User.query.filter_by(username=form.username.data).first()
+            if existing_user:
+                flash('Username already taken', 'error')
+                return render_template('register.html', form=form)
             
             # 检查邮箱是否已存在于正式用户表
-            if User.query.filter_by(email=form.email.data).first():
-                errors.append('Email already registered')
+            existing_email = User.query.filter_by(email=form.email.data).first()
+            if existing_email:
+                flash('Email already registered', 'error')
+                return render_template('register.html', form=form)
             
-            # 检查手机号是否已存在（如果提供了手机号）
-            if form.phone.data and User.query.filter_by(phone=form.phone.data).first():
-                errors.append('Phone number already registered')
-            
-            # 检查临时用户表
-            temp_user = TempUser.query.filter(
-                (TempUser.username == form.username.data) |
-                (TempUser.email == form.email.data) |
-                (TempUser.phone == form.phone.data if form.phone.data else False)
+            # 检查临时用户表中的用户名和邮箱
+            existing_temp = TempUser.query.filter(
+                (TempUser.username == form.username.data) | 
+                (TempUser.email == form.email.data)
             ).first()
             
-            if temp_user:
-                if datetime.now() > temp_user.expires_at:
-                    db.session.delete(temp_user)
+            if existing_temp:
+                if datetime.now() > existing_temp.expires_at:
+                    db.session.delete(existing_temp)
                     db.session.commit()
                 else:
-                    if temp_user.username == form.username.data:
-                        errors.append('Username is taken (pending verification)')
-                    if temp_user.email == form.email.data:
-                        errors.append('Email is pending verification')
-                    if temp_user.phone and temp_user.phone == form.phone.data:
-                        errors.append('Phone number is pending verification')
-            
-            # 如果有任何错误，显示所有错误消息
-            if errors:
-                for error in errors:
-                    flash(error, 'error')
-                return render_template('register.html', form=form)
+                    if existing_temp.username == form.username.data:
+                        flash('Username is taken, please wait for verification email or choose another username', 'error')
+                    else:
+                        flash('Email is registered, please wait for verification email or use another email', 'error')
+                    return render_template('register.html', form=form)
             
             # 验证密码复杂度
             is_valid, error_message = validate_password(form.password.data)
@@ -126,50 +115,23 @@ def register_pending():
 @main.route('/verify-email/<token>')
 def verify_email(token):
     try:
-        # 解码令牌
-        try:
-            data = jwt.decode(
-                token,
-                current_app.config['SECRET_KEY'],
-                algorithms=['HS256']
-            )
-            email = data.get('verify_email')
-        except jwt.ExpiredSignatureError:
-            flash('Verification link has expired, please register again', 'error')
-            return redirect(url_for('main.register'))
-        except jwt.InvalidTokenError:
-            flash('Invalid verification link', 'error')
-            return redirect(url_for('main.register'))
-        
-        # 查找临时用户
-        temp_user = TempUser.query.filter_by(
-            email=email,
-            verify_token=token
-        ).first()
+        temp_user = TempUser.query.filter_by(verify_token=token).first()
         
         if not temp_user:
             flash('Invalid or expired verification link', 'error')
             return redirect(url_for('main.register'))
-        
-        # 检查是否过期
+            
         if datetime.now() > temp_user.expires_at:
             db.session.delete(temp_user)
             db.session.commit()
-            flash('Verification link has expired, please register again', 'error')
+            flash('Verification link expired, please register again', 'error')
             return redirect(url_for('main.register'))
-        
-        # 检查邮箱是否已被其他用户注册
-        if User.query.filter_by(email=temp_user.email).first():
-            db.session.delete(temp_user)
-            db.session.commit()
-            flash('Email has already been registered', 'error')
-            return redirect(url_for('main.register'))
-        
+            
         # 创建正式用户
         user = User(
             username=temp_user.username,
             email=temp_user.email,
-            phone=temp_user.phone,
+            phone=temp_user.phone if hasattr(temp_user, 'phone') else None,
             password_hash=temp_user.password_hash,
             is_verified=True
         )
@@ -196,44 +158,50 @@ def verify_email(token):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-        
-    form = LoginForm()
     
+    form = LoginForm()
     if form.validate_on_submit():
-        try:
-            user = User.query.filter_by(username=form.username.data).first()
+        # 添加调试日志
+        current_app.logger.info(f"Attempting login for user: {form.username.data}")
+        
+        user = User.query.filter_by(username=form.username.data).first()
+        
+        # 添加更多调试信息
+        if user:
+            current_app.logger.info(f"User found: {user.username}")
+            current_app.logger.info(f"Is verified: {user.is_verified}")
+            current_app.logger.info(f"Is admin: {user.is_admin}")
+            password_check = user.check_password(form.password.data)
+            current_app.logger.info(f"Password check result: {password_check}")
+        else:
+            current_app.logger.info("User not found in database")
+        
+        # 检查账户是否被锁定
+        if user and user.is_locked:
+            remaining_time = (user.locked_until - datetime.utcnow()).seconds // 60
+            flash(f'Account is locked, please try again in {remaining_time} minutes', 'error')
+            return render_template('login.html', form=form)
             
-            if not user:
-                flash('Invalid username or password', 'error')
-                return render_template('login.html', form=form)
+        # 检查密码
+        if user and user.check_password(form.password.data):
+            # 登录成功，重置计数器
+            user.login_attempts = 0
+            user.locked_until = None
+            db.session.commit()
             
-            # 检查账户是否被锁定
-            if user.is_locked:
-                remaining_time = (user.locked_until - datetime.utcnow()).seconds // 60
-                flash(f'Account is locked, please try again in {remaining_time} minutes', 'error')
-                return render_template('login.html', form=form)
+            # 如果用户启用了双因素认证
+            if user.is_2fa_enabled:
+                session['2fa_user_id'] = user.id
+                return redirect(url_for('main.verify_2fa'))
             
-            # 检查密码
-            if user.check_password(form.password.data):
-                # 登录成功，重置计数器
-                user.login_attempts = 0
-                user.locked_until = None
-                db.session.commit()
-                
-                # 检查是否启用了2FA
-                if user.is_2fa_enabled:
-                    session['2fa_user_id'] = user.id
-                    return redirect(url_for('main.verify_2fa'))
-                
-                # 登录用户
-                login_user(user, remember=form.remember_me.data)
-                
-                next_page = request.args.get('next')
-                if not next_page or url_parse(next_page).netloc != '':
-                    next_page = url_for('main.home')
+            login_user(user, remember=form.remember_me.data)
+            next_page = request.args.get('next')
+            if next_page:
                 return redirect(next_page)
-            else:
-                # 密码错误，更新失败次数
+            return redirect(url_for('main.home'))
+        else:
+            if user:
+                # 更新失败次数
                 user.login_attempts = (user.login_attempts or 0) + 1
                 user.last_login_attempt = datetime.utcnow()
                 
@@ -244,14 +212,9 @@ def login():
                 else:
                     remaining_attempts = 5 - user.login_attempts
                     flash(f'Invalid password, {remaining_attempts} attempts remaining', 'error')
-                
                 db.session.commit()
-                return render_template('login.html', form=form)
-                
-        except Exception as e:
-            current_app.logger.error(f"Login error: {str(e)}")
-            flash('An error occurred during login. Please try again.', 'error')
-            return render_template('login.html', form=form)
+            else:
+                flash('Invalid username or password', 'error')
     
     return render_template('login.html', form=form)
 
