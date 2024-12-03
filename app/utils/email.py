@@ -82,14 +82,20 @@ Lovejoy Antiques 团队''',
 
 def generate_token(email):
     """Generate verification token"""
-    return jwt.encode(
-        {
-            'email': email,
-            'exp': datetime.utcnow() + timedelta(hours=1)
-        },
-        current_app.config['SECRET_KEY'],
-        algorithm='HS256'
-    )
+    try:
+        expires = datetime.utcnow() + timedelta(hours=1)
+        token = jwt.encode(
+            {
+                'verify_email': email,
+                'exp': expires
+            },
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+        return token
+    except Exception as e:
+        current_app.logger.error(f"Error generating token: {str(e)}")
+        return None
 
 def send_reset_email(user):
     """发送密码重置邮件"""

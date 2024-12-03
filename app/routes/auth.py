@@ -25,6 +25,7 @@ import io
 import pyotp
 from PIL import Image
 import base64
+import jwt
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -125,20 +126,45 @@ def register_pending():
 @main.route('/verify-email/<token>')
 def verify_email(token):
     try:
-        # 从令牌中获取邮箱
-        temp_user = TempUser.query.filter_by(verify_token=token).first()
+        # 解码令牌
+        try:
+            data = jwt.decode(
+                token,
+                current_app.config['SECRET_KEY'],
+                algorithms=['HS256']
+            )
+            email = data.get('verify_email')
+        except jwt.ExpiredSignatureError:
+            flash('Verification link has expired, please register again', 'error')
+            return redirect(url_for('main.register'))
+        except jwt.InvalidTokenError:
+            flash('Invalid verification link', 'error')
+            return redirect(url_for('main.register'))
+        
+        # 查找临时用户
+        temp_user = TempUser.query.filter_by(
+            email=email,
+            verify_token=token
+        ).first()
         
         if not temp_user:
             flash('Invalid or expired verification link', 'error')
             return redirect(url_for('main.register'))
-            
-        # 检查令牌是否过期
+        
+        # 检查是否过期
         if datetime.now() > temp_user.expires_at:
             db.session.delete(temp_user)
             db.session.commit()
             flash('Verification link has expired, please register again', 'error')
             return redirect(url_for('main.register'))
-            
+        
+        # 检查邮箱是否已被其他用户注册
+        if User.query.filter_by(email=temp_user.email).first():
+            db.session.delete(temp_user)
+            db.session.commit()
+            flash('Email has already been registered', 'error')
+            return redirect(url_for('main.register'))
+        
         # 创建正式用户
         user = User(
             username=temp_user.username,
@@ -150,7 +176,7 @@ def verify_email(token):
         
         try:
             db.session.add(user)
-            db.session.delete(temp_user)  # 删除临时用户
+            db.session.delete(temp_user)
             db.session.commit()
             flash('Email verified successfully! Please login', 'success')
             return redirect(url_for('main.login'))
