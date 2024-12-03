@@ -57,7 +57,7 @@ class Config:
     RECAPTCHA_OPTIONS = {'theme': 'clean'}
     
     # 域名配置
-    # SERVER_NAME = os.environ.get('SERVER_NAME', 'lovejoy.xiong71.xyz')
+    SERVER_NAME = os.environ.get('SERVER_NAME', 'lovejoy.xiong71.xyz')
     PREFERRED_URL_SCHEME = 'https'
 
 # Updated for Render deployment

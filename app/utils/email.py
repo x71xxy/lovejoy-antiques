@@ -51,7 +51,8 @@ def send_verification_email(temp_user):
         verification_url = url_for(
             'main.verify_email',
             token=temp_user.verify_token,
-            _external=True
+            _external=True,
+            _scheme='https'
         )
         
         send_email(
