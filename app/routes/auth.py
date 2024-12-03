@@ -35,34 +35,44 @@ def register():
     
     if form.validate_on_submit():
         try:
+            errors = []
+            
             # 检查用户名是否已存在于正式用户表
-            existing_user = User.query.filter_by(username=form.username.data).first()
-            if existing_user:
-                flash('Username already taken', 'error')
-                return render_template('register.html', form=form)
+            if User.query.filter_by(username=form.username.data).first():
+                errors.append('Username already taken')
             
             # 检查邮箱是否已存在于正式用户表
-            existing_email = User.query.filter_by(email=form.email.data).first()
-            if existing_email:
-                flash('Email already registered', 'error')
-                return render_template('register.html', form=form)
+            if User.query.filter_by(email=form.email.data).first():
+                errors.append('Email already registered')
             
-            # 检查临时用户表中的用户名和邮箱
-            existing_temp = TempUser.query.filter(
-                (TempUser.username == form.username.data) | 
-                (TempUser.email == form.email.data)
+            # 检查手机号是否已存在（如果提供了手机号）
+            if form.phone.data and User.query.filter_by(phone=form.phone.data).first():
+                errors.append('Phone number already registered')
+            
+            # 检查临时用户表
+            temp_user = TempUser.query.filter(
+                (TempUser.username == form.username.data) |
+                (TempUser.email == form.email.data) |
+                (TempUser.phone == form.phone.data if form.phone.data else False)
             ).first()
             
-            if existing_temp:
-                if datetime.now() > existing_temp.expires_at:
-                    db.session.delete(existing_temp)
+            if temp_user:
+                if datetime.now() > temp_user.expires_at:
+                    db.session.delete(temp_user)
                     db.session.commit()
                 else:
-                    if existing_temp.username == form.username.data:
-                        flash('Username is taken, please wait for verification email or choose another username', 'error')
-                    else:
-                        flash('Email is registered, please wait for verification email or use another email', 'error')
-                    return render_template('register.html', form=form)
+                    if temp_user.username == form.username.data:
+                        errors.append('Username is taken (pending verification)')
+                    if temp_user.email == form.email.data:
+                        errors.append('Email is pending verification')
+                    if temp_user.phone and temp_user.phone == form.phone.data:
+                        errors.append('Phone number is pending verification')
+            
+            # 如果有任何错误，显示所有错误消息
+            if errors:
+                for error in errors:
+                    flash(error, 'error')
+                return render_template('register.html', form=form)
             
             # 验证密码复杂度
             is_valid, error_message = validate_password(form.password.data)
