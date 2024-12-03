@@ -105,6 +105,15 @@ block content %}
     .getElementById("imageInput")
     .addEventListener("change", function (e) {
       const files = e.target.files;
+      const maxImages = 5; // 最大图片数量
+
+      // 检查图片数量
+      if (files.length > maxImages) {
+        alert(`Maximum ${maxImages} images allowed`);
+        this.value = ""; // 清空选择
+        return;
+      }
+
       const previewContainer = document.getElementById("previewContainer");
       previewContainer.innerHTML = "";
 
@@ -117,9 +126,9 @@ block content %}
 
           reader.onload = function (e) {
             previewItem.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview">
-                    <button type="button" class="remove-btn" onclick="removePreview(this)">×</button>
-                `;
+                      <img src="${e.target.result}" alt="Preview">
+                      <button type="button" class="remove-btn" onclick="removePreview(this)">×</button>
+                  `;
           };
 
           reader.readAsDataURL(file);
@@ -153,9 +162,23 @@ block content %}
     uploadArea.style.background = "#f8f9fa";
 
     const files = e.dataTransfer.files;
+    if (files.length > 5) {
+      alert("Maximum 5 images allowed");
+      return;
+    }
+
     document.getElementById("imageInput").files = files;
     const event = new Event("change");
     document.getElementById("imageInput").dispatchEvent(event);
+  });
+
+  // 添加表单提交验证
+  document.querySelector("form").addEventListener("submit", function (e) {
+    const files = document.getElementById("imageInput").files;
+    if (files.length > 5) {
+      e.preventDefault();
+      alert("Maximum 5 images allowed");
+    }
   });
 </script>
 

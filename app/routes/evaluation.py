@@ -55,13 +55,20 @@ def request_evaluation():
     if form.validate_on_submit():
         try:
             files = request.files.getlist('images')
+            
+            # 检查是否有文件上传
             if not files or files[0].filename == '':
                 flash('Please select at least one image', 'error')
                 return render_template('request_evaluation.html', form=form)
             
-            # Check file count
+            # 检查文件数量
             if len(files) > current_app.config['MAX_IMAGE_COUNT']:
-                flash('Maximum 5 images allowed', 'error')
+                flash(f'Maximum {current_app.config["MAX_IMAGE_COUNT"]} images allowed', 'error')
+                return render_template('request_evaluation.html', form=form)
+            
+            # 检查文件数量是否为0
+            if len(files) == 0:
+                flash('Please select at least one image', 'error')
                 return render_template('request_evaluation.html', form=form)
             
             # Process image upload
@@ -76,14 +83,13 @@ def request_evaluation():
                     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                     unique_filename = f"{timestamp}_{filename}"
                     
-                    # 使用安全的文件保存函数
                     if not save_uploaded_file(image, unique_filename):
                         flash('Failed to save image', 'error')
                         return render_template('request_evaluation.html', form=form)
                     
                     image_paths.append(unique_filename)
                 else:
-                    flash('Invalid file type', 'error')
+                    flash('Invalid file type. Supported formats: JPG, PNG, GIF', 'error')
                     return render_template('request_evaluation.html', form=form)
             
             # Create evaluation request
