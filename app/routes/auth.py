@@ -203,44 +203,51 @@ def login():
         try:
             user = User.query.filter_by(username=form.username.data).first()
             
-            # 添加详细的日志记录
             if not user:
-                current_app.logger.info(f"Login attempt failed: User not found - {form.username.data}")
-                flash('Invalid username or password', 'error')
-                return render_template('login.html', form=form)
-            
-            # 检查密码
-            if not user.check_password(form.password.data):
-                current_app.logger.info(f"Login attempt failed: Invalid password for user {user.username}")
                 flash('Invalid username or password', 'error')
                 return render_template('login.html', form=form)
             
             # 检查账户是否被锁定
             if user.is_locked:
-                flash('Account is locked. Please try again later.', 'error')
+                remaining_time = (user.locked_until - datetime.utcnow()).seconds // 60
+                flash(f'Account is locked, please try again in {remaining_time} minutes', 'error')
                 return render_template('login.html', form=form)
             
-            # 重置登录尝试次数
-            user.login_attempts = 0
-            user.locked_until = None
-            db.session.commit()
-            
-            # 检查是否启用了2FA
-            if user.is_2fa_enabled:
-                session['2fa_user_id'] = user.id
-                return redirect(url_for('main.verify_2fa'))
-            
-            # 登录用户
-            login_user(user, remember=form.remember_me.data)
-            current_app.logger.info(f"User {user.username} logged in successfully")
-            
-            # 获取下一个页面的 URL
-            next_page = request.args.get('next')
-            if not next_page or url_parse(next_page).netloc != '':
-                next_page = url_for('main.home')
+            # 检查密码
+            if user.check_password(form.password.data):
+                # 登录成功，重置计数器
+                user.login_attempts = 0
+                user.locked_until = None
+                db.session.commit()
                 
-            return redirect(next_page)
-            
+                # 检查是否启用了2FA
+                if user.is_2fa_enabled:
+                    session['2fa_user_id'] = user.id
+                    return redirect(url_for('main.verify_2fa'))
+                
+                # 登录用户
+                login_user(user, remember=form.remember_me.data)
+                
+                next_page = request.args.get('next')
+                if not next_page or url_parse(next_page).netloc != '':
+                    next_page = url_for('main.home')
+                return redirect(next_page)
+            else:
+                # 密码错误，更新失败次数
+                user.login_attempts = (user.login_attempts or 0) + 1
+                user.last_login_attempt = datetime.utcnow()
+                
+                # 如果失败次数达到限制
+                if user.login_attempts >= 5:
+                    user.locked_until = datetime.utcnow() + timedelta(minutes=30)
+                    flash('Too many failed login attempts, account locked for 30 minutes', 'error')
+                else:
+                    remaining_attempts = 5 - user.login_attempts
+                    flash(f'Invalid password, {remaining_attempts} attempts remaining', 'error')
+                
+                db.session.commit()
+                return render_template('login.html', form=form)
+                
         except Exception as e:
             current_app.logger.error(f"Login error: {str(e)}")
             flash('An error occurred during login. Please try again.', 'error')

@@ -8,7 +8,7 @@
     </div>
 
     <form method="POST" class="auth-form">
-      {{ form.hidden_tag() }}
+      {{ form.csrf_token }}
 
       <div class="form-group">
         {{ form.username.label }} {{ form.username(class="form-control",
