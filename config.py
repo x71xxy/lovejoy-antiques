@@ -36,10 +36,10 @@ class Config:
     VERIFY_EMAIL_SALT = 'email-verification'
     
     # File upload configuration
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # Limit single file size to 5MB
-    UPLOAD_FOLDER = '/tmp/uploads' if os.environ.get('FLASK_ENV') == 'production' else 'app/static/uploads'
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB limit
+    UPLOAD_FOLDER = '/opt/render/project/src/app/static/uploads'  # 修改为 Render 可写的路径
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-    MAX_IMAGE_COUNT = 5  # Maximum 5 images per evaluation
+    MAX_IMAGE_COUNT = 5
     
     # Image validation configuration
     MAX_IMAGE_DIMENSION = 4096  # Maximum image dimension

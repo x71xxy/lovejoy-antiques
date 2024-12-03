@@ -138,3 +138,27 @@ def cancel_evaluation(evaluation_id):
         db.session.rollback()
         current_app.logger.error(f"Failed to cancel evaluation: {str(e)}")
         return jsonify({'error': 'Operation failed, please try again'}), 500 
+
+@main.route('/submit_evaluation', methods=['POST'])
+@login_required
+def submit_evaluation():
+    try:
+        # 检查上传目录权限
+        upload_dir = current_app.config['UPLOAD_FOLDER']
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir, exist_ok=True)
+            os.chmod(upload_dir, 0o755)
+            current_app.logger.info(f"Created upload directory: {upload_dir}")
+        
+        # 验证目录是否可写
+        if not os.access(upload_dir, os.W_OK):
+            current_app.logger.error(f"Upload directory is not writable: {upload_dir}")
+            raise PermissionError(f"Upload directory is not writable: {upload_dir}")
+        
+        # ... 其他代码 ...
+    except Exception as e:
+        db.session.rollback()
+        flash('Submission failed, please try again later', 'error')
+        current_app.logger.error(f"Failed to submit evaluation request: {str(e)}")
+    
+    return render_template('request_evaluation.html', form=form) 

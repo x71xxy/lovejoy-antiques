@@ -38,3 +38,30 @@ def sanitize_filename(filename: str) -> str:
     if ext not in allowed_extensions:
         return ''
     return filename 
+
+def save_uploaded_file(file, filename):
+    """安全地保存上传的文件"""
+    try:
+        # 确保上传目录存在
+        upload_dir = current_app.config['UPLOAD_FOLDER']
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir, exist_ok=True)
+            os.chmod(upload_dir, 0o755)
+        
+        # 构建完整的文件路径
+        filepath = os.path.join(upload_dir, filename)
+        
+        # 保存文件
+        file.save(filepath)
+        
+        # 验证文件是否成功保存
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"File was not saved: {filepath}")
+        
+        # 设置适当的文件权限
+        os.chmod(filepath, 0o644)
+        
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Error saving file {filename}: {str(e)}")
+        return False 

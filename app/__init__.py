@@ -19,6 +19,16 @@ def create_app(config_name=None):
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # 初始化上传目录
+    upload_dir = app.config['UPLOAD_FOLDER']
+    if not os.path.exists(upload_dir):
+        try:
+            os.makedirs(upload_dir, exist_ok=True)
+            # 确保目录有正确的权限
+            os.chmod(upload_dir, 0o755)
+        except Exception as e:
+            app.logger.error(f"Failed to create upload directory: {str(e)}")
+    
     # 初始化扩展
     db.init_app(app)
     migrate.init_app(app, db)
