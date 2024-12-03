@@ -6,6 +6,7 @@ from datetime import datetime
 from app import db
 from app.models.evaluation import EvaluationRequest
 from app.forms.evaluation import EvaluationRequestForm
+from app.utils.security import save_uploaded_file
 from . import main
 import imghdr
 from PIL import Image
