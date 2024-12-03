@@ -56,25 +56,25 @@ def send_verification_email(temp_user):
         )
         
         send_email(
-            subject='验证您的 Lovejoy Antiques 账号',
+            subject='Verify Your Lovejoy Antiques Account',
             recipients=[temp_user.email],
-            text_body=f'''尊敬的 {temp_user.username}：
+            text_body=f'''Dear {temp_user.username}:
 
-感谢您注册 Lovejoy Antiques！请点击以下链接验证您的邮箱：
+Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:
 {verification_url}
 
-此链接将在1小时后过期。
-如果您没有请求此验证，请忽略此邮件。
+This link will expire in 1 hour.
+If you did not request this verification, please ignore this email.
 
-祝好，
-Lovejoy Antiques 团队''',
+Best regards,
+Lovejoy Antiques Team''',
             html_body=f'''
-<p>尊敬的 {temp_user.username}：</p>
-<p>感谢您注册 Lovejoy Antiques！请点击以下链接验证您的邮箱：</p>
-<p><a href="{verification_url}">验证邮箱</a></p>
-<p>此链接将在1小时后过期。</p>
-<p>如果您没有请求此验证，请忽略此邮件。</p>
-<p>祝好，<br>Lovejoy Antiques 团队</p>'''
+<p>Dear {temp_user.username}:</p>
+<p>Thank you for registering with Lovejoy Antiques! Please click the following link to verify your email:</p>
+<p><a href="{verification_url}">Verify Email</a></p>
+<p>This link will expire in 1 hour.</p>
+<p>If you did not request this verification, please ignore this email.</p>
+<p>Best regards,<br>Lovejoy Antiques Team</p>'''
         )
         return True
     except Exception as e:
@@ -93,26 +93,26 @@ def generate_token(email):
     )
 
 def send_reset_email(user):
-    """发送密码重置邮件"""
+    """Send password reset email"""
     try:
         token = user.get_reset_password_token()
         send_email(
-            subject='重置您的 Lovejoy Antiques 密码',
+            subject='Reset Your Lovejoy Antiques Password',
             recipients=[user.email],
-            text_body=f'''请点击以下链接重置您的密码：
+            text_body=f'''Please click the following link to reset your password:
 {url_for('main.reset_password', token=token, _external=True)}
 
-如果您没有请求重置密码，请忽略此邮件。
+If you did not request a password reset, please ignore this email.
 
-祝好，
-Lovejoy Antiques 团队''',
+Best regards,
+Lovejoy Antiques Team''',
             html_body=f'''
-<p>请点击以下链接重置您的密码：</p>
+<p>Please click the following link to reset your password:</p>
 <p><a href="{url_for('main.reset_password', token=token, _external=True)}">
-    重置密码
+    Reset Password
 </a></p>
-<p>如果您没有请求重置密码，请忽略此邮件。</p>
-<p>祝好，<br>Lovejoy Antiques 团队</p>'''
+<p>If you did not request a password reset, please ignore this email.</p>
+<p>Best regards,<br>Lovejoy Antiques Team</p>'''
         )
         return True
     except Exception as e:

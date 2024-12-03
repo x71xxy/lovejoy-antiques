@@ -1,13 +1,13 @@
-{% extends "base.html" %} {% block title %}设置双因素认证{% endblock %} {% block
-content %}
+{% extends "base.html" %} {% block title %}Set up two-factor authentication{%
+endblock %} {% block content %}
 <div class="auth-container">
   <div class="auth-box">
-    <h1>设置双因素认证</h1>
-    <p class="description">使用 Google Authenticator 扫描二维码</p>
+    <h1>Set up two-factor authentication</h1>
+    <p class="description">Scan the QR code using Google Authenticator</p>
 
     <div class="qr-container">
       <img src="{{ qr_code }}" alt="2FA QR Code" />
-      <p class="backup-code">备用密钥: {{ secret }}</p>
+      <p class="backup-code">Alternate key: {{ secret }}</p>
     </div>
 
     <form method="POST" class="auth-form">
@@ -16,14 +16,17 @@ content %}
       <div class="form-group">
         <div class="input-wrapper">
           <i class="icon"></i>
-          {{ form.token(class="form-control", placeholder="输入6位验证码") }}
+          {{ form.token(class="form-control", placeholder="Enter 6-digit code")
+          }}
         </div>
         {% if form.token.errors %} {% for error in form.token.errors %}
         <span class="error-message">{{ error }}</span>
         {% endfor %} {% endif %}
       </div>
 
-      <button type="submit" class="submit-btn">启用双因素认证</button>
+      <button type="submit" class="submit-btn">
+        Enable two-factor authentication
+      </button>
     </form>
   </div>
 </div>
