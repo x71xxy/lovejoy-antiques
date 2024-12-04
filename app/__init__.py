@@ -20,7 +20,7 @@ def create_app(config_name=None):
     app.config.from_object(Config)
     
     # 初始化上传目录
-    upload_dir = app.config['UPLOAD_FOLDER']
+    upload_dir = os.path.join(app.root_path, 'static/uploads')
     if not os.path.exists(upload_dir):
         try:
             os.makedirs(upload_dir, exist_ok=True)
